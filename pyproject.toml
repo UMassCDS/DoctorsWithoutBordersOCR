@@ -22,10 +22,12 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "dvc>=2.42.0",
-    "numpy",
-    "pandas",
-    "scikit-learn",
+    "azure-common==1.1.28",
+    "azure-core==1.26.1",
+    "azure-identity==1.12.0",
+    "azure-keyvault==4.2.0",
+    "azure-keyvault-secrets==4.6.0",
+    "azure-storage-blob==12.14.1",
 ]
 
 [project.optional-dependencies]
