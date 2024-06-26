@@ -8,6 +8,9 @@ import pandas as pd
 
 
 def test_get_sheet_type():
+    """
+    Tests if the tally sheet type (dataSet, orgUnit, period) detected for a sample image is correct.
+    """
     current_dir = os.path.dirname(__file__)
     img_path = os.path.join(current_dir, '..', 'data', 'MSF_data', 'IMG_20240514_090947.png')
 
@@ -23,6 +26,9 @@ def test_get_sheet_type():
 
 
 def test_generate_key_value_pairs():
+    """
+    Tests if the dataElement value in the key-value pairs is correct by providing sample tablular data.
+    """
     df = pd.DataFrame({
         '0': ['Paed (0-59m) vacc target population'],
         '0-11m': [None],
@@ -52,6 +58,10 @@ def test_generate_key_value_pairs():
 
 
 def test_get_tabular_content():
+    """
+    Tests if all tables in a sample image are detected by the ML model.
+    Tests if all rows and columns of every table in the sample image is detected correctly.
+    """
     current_dir = os.path.dirname(__file__)
     img_path = os.path.join(current_dir, '..', 'data', 'MSF_data', 'IMG_20240514_090947.png')
     document = DocumentFile.from_images(img_path)
