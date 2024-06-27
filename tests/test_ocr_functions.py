@@ -39,16 +39,15 @@ def test_generate_key_value_pairs():
     assert len(ocr_functions.generate_key_value_pairs(df)) == 0
 
     df = pd.DataFrame({
-        '0': ['BCG', 'HepB (birth dose, within 24h)', 'HepB (birth dose, 24h or later)',
-              'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
-        '0-11m': ['45+29', None, None, '30+18', '55+29'],
-        '12-59m': [None, None, None, None, None],
-        '5-14y': [None, None, None, None, None]
+        '0': ['BCG', 'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
+        '0-11m': ['45+29', None, '30+18'],
+        '12-59m': [None, None, '55+29'],
+        '5-14y': [None, None, None]
     })
-
-    answer = [{'dataElement': '', 'categoryCombo': '', 'value': '45+29'},
-              {'dataElement': '', 'categoryCombo': '', 'value': '30+18'},
-              {'dataElement': '', 'categoryCombo': '', 'value': '55+29'}]
+    
+    answer = [{'dataElement': '', 'categoryOptions': '', 'value': '45+29'},
+              {'dataElement': '', 'categoryOptions': '', 'value': '30+18'},
+              {'dataElement': '', 'categoryOptions': '', 'value': '55+29'}]
 
     data_element_pairs = ocr_functions.generate_key_value_pairs(df)
     assert len(data_element_pairs) == len(answer)

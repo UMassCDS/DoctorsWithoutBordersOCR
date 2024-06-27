@@ -2,7 +2,7 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
-# from src.data import data_upload_DHIS2
+from data import data_upload_DHIS2
 import re
 import numpy as np
 import pandas as pd
@@ -166,25 +166,27 @@ def generate_key_value_pairs(table):
     columns = table.columns
     for row_index in range(table_array.shape[0]):
         data_element = table_array[row_index][0]
-        # data_element_id = data_upload_DHIS2.getUID('dataElements', [data_element])
+        data_element_id = data_upload_DHIS2.getUID('dataElements', [data_element])
+        print(data_element, data_element_id)
         for col_index in range(1, table_array.shape[1]):
             category = columns[col_index]
-            # category_id = data_upload_DHIS2.getUID('categoryCombo', [category])
+            category_id = data_upload_DHIS2.getUID('categoryOptions', [category])
             cell_value = table_array[row_index][col_index]
             if cell_value is not None:
-                data_element_pairs.append({  # 'dataElement': data_element_id,
-                    # 'categoryCombo': category_id,
+                data_element_pairs.append({  'dataElement': data_element_id,
+                    'categoryOptions': category_id,
                     'value': cell_value})
 
     return data_element_pairs
 
+
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
 # document = DocumentFile.from_images("IMG_20240514_090947.jpg")
 # result = get_word_level_content(ocr_model, document)
-#
+
 # sheet_type = get_sheet_type(result)
 # confidence_lookup_dict = get_confidence_values(result)
-#
+
 # doctr_ocr = DocTR(detect_language=False)
 # img = Image(src="IMG_20240514_090947.jpg")  # , detect_rotation=True
 # table_df, confidence_df = get_tabular_content(doctr_ocr, img, confidence_lookup_dict)
@@ -208,3 +210,23 @@ def generate_key_value_pairs(table):
 #                 if max_similarity < sim:
 #                     max_similarity = sim
 #                     table.iloc[row_index, 0] = name
+
+
+# df = pd.DataFrame({
+#         '0': ['Paed (0-59m) vacc target population'],
+#         '0-11m': [None],
+#         '12-59m': [None],
+#         '5-14y': [None]
+#     })
+
+# print(generate_key_value_pairs(df))
+
+# df = pd.DataFrame({
+#         '0': ['BCG', 'HepB (birth dose, within 24h)', 'HepB (birth dose, 24h or later)',
+#               'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
+#         '0-11m': ['45+29', None, None, '30+18', '55+29'],
+#         '12-59m': [None, None, None, None, None],
+#         '5-14y': [None, None, None, None, None]
+#     })
+
+# print(generate_key_value_pairs(df))
