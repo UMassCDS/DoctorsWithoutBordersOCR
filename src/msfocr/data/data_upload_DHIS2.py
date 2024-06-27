@@ -17,6 +17,9 @@ def getUID(item_type, search_items):
 
     url = f'{DHIS2_Test_Server_URL}/api/{item_type}?{filter_param}'
 
+    if dhis2_username == '' or dhis2_password == '':
+        print("Enter username and password")
+
     response = requests.get(url, auth=(dhis2_username, dhis2_password))
     data = response.json()
 
@@ -74,6 +77,6 @@ def getUID(item_type, search_items):
 #     print('Response data:')
 #     print(response.json())
 
-search_items_categoryCombo = ['Polio (OPV) 1 (from 6 wks)']
-item_type = 'dataElements'
-categoryCombos_id = getUID(item_type, search_items_categoryCombo)
+# search_items_categoryCombo = ['Polio (OPV) 1 (from 6 wks)']
+# item_type = 'dataElements'
+# categoryCombos_id = getUID(item_type, search_items_categoryCombo)

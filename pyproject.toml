@@ -5,13 +5,13 @@ requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cdstemplate"
-version = "2.0.0"
-description = "A template repo for data science and machine learning projects at UMass Center for Data Science."
+name = "msfocr"
+version = "0.0.1"
+description = "The repo to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
 # What version of python does your library work with?
-requires-python = ">=3.10"
+requires-python = "<=3.11,>3.7"
 
 # Metadata about your package in case you upload it to PYPI
 classifiers = [
@@ -28,6 +28,14 @@ dependencies = [
     "azure-keyvault==4.2.0",
     "azure-keyvault-secrets==4.6.0",
     "azure-storage-blob==12.14.1",
+    "python-doctr",
+    "img2table",
+    "requests",
+    "torch",
+    "numpy",
+    "pandas",
+    "python-Levenshtein",
+    "torchvision",
 ]
 
 [project.optional-dependencies]
@@ -46,4 +54,3 @@ dev = [
 # If your project contains scripts you'd like to be available command line, you can define them here.
 # The value must be of the form "<package_name>:<module_name>.<function>"
 [project.scripts]
-corpus-counter = "cdstemplate:corpus_counter_script.main_cli"

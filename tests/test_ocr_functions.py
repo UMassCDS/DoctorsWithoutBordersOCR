@@ -1,4 +1,4 @@
-from docTR import ocr_functions
+from msfocr.docTR import ocr_functions
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image

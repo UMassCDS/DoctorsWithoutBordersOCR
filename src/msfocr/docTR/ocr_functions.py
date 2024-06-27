@@ -2,7 +2,7 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
-from data import data_upload_DHIS2
+from msfocr.data import data_upload_DHIS2
 import re
 import numpy as np
 import pandas as pd
