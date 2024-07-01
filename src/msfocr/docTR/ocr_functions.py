@@ -168,13 +168,13 @@ def generate_key_value_pairs(table):
     columns = table.columns
     for row_index in range(table_array.shape[0]):
         data_element = table_array[row_index][0]
-        data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element], **st.secrets.dhis2_credentials)
-        print(data_element, data_element_id)
+        # print(data_element, data_element_id)
         for col_index in range(1, table_array.shape[1]):
             category = columns[col_index]
-            category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category],  **st.secrets.dhis2_credentials)
             cell_value = table_array[row_index][col_index]
             if cell_value is not None:
+                data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element], **st.secrets.dhis2_credentials)
+                category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category],  **st.secrets.dhis2_credentials)
                 data_element_pairs.append({  'dataElement': data_element_id,
                     'categoryOptions': category_id,
                     'value': cell_value})
