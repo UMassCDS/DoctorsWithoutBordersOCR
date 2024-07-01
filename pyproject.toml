@@ -11,7 +11,7 @@ description = "The repo to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
 # What version of python does your library work with?
-requires-python = "<=3.11,>3.7"
+requires-python = "<3.13,>3.7"
 
 # Metadata about your package in case you upload it to PYPI
 classifiers = [
