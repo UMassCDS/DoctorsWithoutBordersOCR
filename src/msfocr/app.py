@@ -58,6 +58,23 @@ def convert_df(dfs):
     json_export["dataValues"] = data_values_list
     return json.dumps(json_export)
 
+@st.cache_data
+def get_uploaded_images(tally_sheet):
+    return [DocumentFile.from_images(sheet.read()) for sheet in tally_sheet]
+
+@st.cache_data
+def get_results(uploaded_images):
+    return [get_word_level_content(ocr_model, doc) for doc in uploaded_images]
+
+@st.cache_data
+def get_tabular_content_wrapper(_doctr_ocr, img, confidence_lookup_dict):
+    return get_tabular_content(_doctr_ocr, img, confidence_lookup_dict)
+
+@st.cache_resource
+def create_ocr():
+    ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+    doctr_ocr = DocTR(detect_language=False)
+    return ocr_model, doctr_ocr
 
 # Initial Display
 st.title("MSF OCR Tool")
@@ -71,7 +88,7 @@ with st.expander("Show Images"):
         st.image(sheet)
 
 # OCR Model
-ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+ocr_model, doctr_ocr = create_ocr()
 
 # Once images are uploaded
 if len(tally_sheet) > 0:    # Will have prefilled data when OCR works
@@ -98,27 +115,26 @@ if len(tally_sheet) > 0:    # Will have prefilled data when OCR works
     period_start = st.date_input("Period Start Date:", format="YYYY-MM-DD")
     period_end = st.date_input("Period End Date:", format="YYYY-MM-DD")
 
-    uploaded_images = [DocumentFile.from_images(sheet.read()) for sheet in tally_sheet]
-    results = [get_word_level_content(ocr_model, doc) for doc in uploaded_images]
+    uploaded_images = get_uploaded_images(tally_sheet)
+    results = get_results(uploaded_images)
 
     # Display OCR results
-    for i, result in enumerate(results):
-        st.write(f"OCR Result for Image {i + 1}:")
-        for page in result.pages:
-            for block in page.blocks:
-                for line in block.lines:
-                    st.write(" ".join(word.value for word in line.words))
+    # for i, result in enumerate(results):
+    #     st.write(f"OCR Result for Image {i + 1}:")
+    #     for page in result.pages:
+    #         for block in page.blocks:
+    #             for line in block.lines:
+    #                 st.write(" ".join(word.value for word in line.words))
 
     for result in results:
         confidence_lookup_dict = get_confidence_values(result)
-        doctr_ocr = DocTR(detect_language=False)
         table_dfs = []
         for sheet in tally_sheet:
             img = Image(src=sheet)
-            table_df, confidence_df = get_tabular_content(doctr_ocr, img, confidence_lookup_dict)
+            table_df, confidence_df = get_tabular_content_wrapper(doctr_ocr, img, confidence_lookup_dict)
             table_dfs.append(table_df)
 
-        # # Display detected tables
+        # Display detected tables
         # if table_dfs:
         #     st.write("### Detected Tables ###")
         #     for i, df in enumerate(table_dfs):
