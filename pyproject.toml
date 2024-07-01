@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "msfocr"
 version = "0.0.1"
-description = "The repo to perform OCR on Doctors without Borders tally sheets."
+description = "The backend to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
 # What version of python does your library work with?
