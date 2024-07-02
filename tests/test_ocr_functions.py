@@ -3,17 +3,13 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
-import os
 import pandas as pd
 
-
-def test_get_sheet_type():
+def test_get_sheet_type(datadir):
     """
     Tests if the tally sheet type (dataSet, orgUnit, period) detected for a sample image is correct.
     """
-    current_dir = os.path.dirname(__file__)
-    img_path = os.path.join(current_dir, '..', 'data', 'MSF_data', 'IMG_20240514_090947.png')
-
+    img_path = datadir / 'IMG_20240514_090947.png'
     ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
     document = DocumentFile.from_images(img_path)
     result = ocr_functions.get_word_level_content(ocr_model, document)
@@ -56,13 +52,12 @@ def test_generate_key_value_pairs():
         assert data_element_pairs[i]['value'] == answer[i]['value']
 
 
-def test_get_tabular_content():
+def test_get_tabular_content(datadir):
     """
     Tests if all tables in a sample image are detected by the ML model.
     Tests if all rows and columns of every table in the sample image is detected correctly.
     """
-    current_dir = os.path.dirname(__file__)
-    img_path = os.path.join(current_dir, '..', 'data', 'MSF_data', 'IMG_20240514_090947.png')
+    img_path = str(datadir / 'IMG_20240514_091004.jpg')
     document = DocumentFile.from_images(img_path)
 
     ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
@@ -77,5 +72,5 @@ def test_get_tabular_content():
 
     assert len(table_df) == 2
 
-    assert table_df[0].shape == (2,4)
-    assert table_df[1].shape == (12,4)
+    assert table_df[0].shape == (8,4)
+    assert table_df[1].shape == (5,4)

@@ -1,5 +1,4 @@
 import requests
-import json
 
 dhis2_username = ''
 dhis2_password = ''

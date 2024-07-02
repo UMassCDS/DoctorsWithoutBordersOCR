@@ -1,7 +1,7 @@
-from doctr.io import DocumentFile
-from doctr.models import ocr_predictor
-from img2table.document import Image
-from img2table.ocr import DocTR
+# from doctr.io import DocumentFile
+# from doctr.models import ocr_predictor
+# from img2table.document import Image
+# from img2table.ocr import DocTR
 from msfocr.data import data_upload_DHIS2
 import re
 import numpy as np
@@ -108,7 +108,8 @@ def get_tabular_content(model, image, confidence_dict=None):
                         if word in confidence_dict:
                             confidence += confidence_dict[word]
                             count += 1
-                    if count != 0: confidence_df[idx].iloc[row, col] = confidence / count
+                    if count != 0: 
+                        confidence_df[idx].iloc[row, col] = confidence / count
 
     return table_df, confidence_df
 
@@ -122,7 +123,7 @@ def get_sheet_type(res):
     :param res: Result of OCR model
     :return: List of dataSet, orgUnit, period.
     """
-    dataSet_list = ["RHGynobs - outpatient (resident/displaced)", "Vaccination - paediatric"]
+    dataSet_list = ["RHGynobs - outpatient (resident/displaced)", "Vaccination - paediatric", "Vaccination - other preventive"]
     orgUnit_list = ["W-14"]
 
     max_similarity_dataSet = 0

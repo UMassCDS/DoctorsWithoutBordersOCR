@@ -36,6 +36,7 @@ dependencies = [
     "pandas",
     "python-Levenshtein",
     "torchvision",
+    "pytest-datadir",
 ]
 
 [project.optional-dependencies]
