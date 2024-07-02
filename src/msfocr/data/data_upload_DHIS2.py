@@ -1,7 +1,7 @@
 import requests
 
-dhis2_username = ''
-dhis2_password = ''
+dhis2_username = 'anju-santosh-kumar'
+dhis2_password = 'AnjSOCR!01'
 DHIS2_Test_Server_URL = 'https://ocr.twoca.org/'
 
 
