@@ -37,6 +37,7 @@ dependencies = [
     "python-Levenshtein",
     "torchvision",
     "pytest-datadir",
+    'notebook'
 ]
 
 [project.optional-dependencies]
