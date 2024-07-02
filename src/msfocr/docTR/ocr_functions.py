@@ -167,13 +167,15 @@ def generate_key_value_pairs(table):
     columns = table.columns
     for row_index in range(table_array.shape[0]):
         data_element = table_array[row_index][0]
-        data_element_id = data_upload_DHIS2.getUID('dataElements', [data_element])
-        print(data_element, data_element_id)
         for col_index in range(1, table_array.shape[1]):
             category = columns[col_index]
-            category_id = data_upload_DHIS2.getUID('categoryOptions', [category])
             cell_value = table_array[row_index][col_index]
             if cell_value is not None:
+                # Retrive UIDs for dataElement and categoryOption
+                data_element_id = data_upload_DHIS2.getUID('dataElements', [data_element])
+                print(data_element, data_element_id)
+                category_id = data_upload_DHIS2.getUID('categoryOptions', [category])
+                # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append({  'dataElement': data_element_id,
                     'categoryOptions': category_id,
                     'value': cell_value})

@@ -16,10 +16,10 @@ def getUID(item_type, search_items):
 
     url = f'{DHIS2_Test_Server_URL}/api/{item_type}?{filter_param}'
 
-    if dhis2_username == '' or dhis2_password == '':
-        print("Enter username and password")
-
     response = requests.get(url, auth=(dhis2_username, dhis2_password))
+    if response.status_code == 401:
+        raise ValueError("Authentication failed. Check your username and password.")
+    
     data = response.json()
 
     items = data[item_type]
