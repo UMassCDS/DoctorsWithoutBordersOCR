@@ -5,13 +5,13 @@ requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "msfocr"
-version = "0.0.1"
-description = "The backend to perform OCR on Doctors without Borders tally sheets."
+name = "cdstemplate"
+version = "2.0.0"
+description = "A template repo for data science and machine learning projects at UMass Center for Data Science."
 readme = "README.md"
 
 # What version of python does your library work with?
-requires-python = "<3.13,>3.7"
+requires-python = ">=3.10"
 
 # Metadata about your package in case you upload it to PYPI
 classifiers = [
@@ -22,21 +22,10 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "azure-common==1.1.28",
-    "azure-core==1.26.1",
-    "azure-identity==1.12.0",
-    "azure-keyvault==4.2.0",
-    "azure-keyvault-secrets==4.6.0",
-    "azure-storage-blob==12.14.1",
-    "python-doctr",
-    "img2table",
-    "requests",
-    "torch",
+    "dvc>=2.42.0",
     "numpy",
     "pandas",
-    "python-Levenshtein",
-    "torchvision",
-    "pytest-datadir",
+    "scikit-learn",
 ]
 
 [project.optional-dependencies]
@@ -55,3 +44,4 @@ dev = [
 # If your project contains scripts you'd like to be available command line, you can define them here.
 # The value must be of the form "<package_name>:<module_name>.<function>"
 [project.scripts]
+corpus-counter = "cdstemplate:corpus_counter_script.main_cli"
