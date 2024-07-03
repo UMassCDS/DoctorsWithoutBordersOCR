@@ -1,9 +1,14 @@
+import configparser
+
 import requests
 
-dhis2_username = 'anju-santosh-kumar'
-dhis2_password = 'AnjSOCR!01'
-DHIS2_Test_Server_URL = 'https://ocr.twoca.org/'
-
+# Read server configuration from "settings.ini" file
+config = configparser.ConfigParser()
+config.read("settings.ini")
+DHIS2_SECTION = config["DHIS2Server"]
+DHIS2_USERNAME = DHIS2_SECTION["username"]
+DHIS2_PASSWORD = DHIS2_SECTION["password"]
+DHIS2_SERVER_URL = DHIS2_SECTION["server_url"]
 
 # Command to get all fields that are organisationUnits
 # TestServerURL/api/organisationUnits.json?fields=:all&includeChildren=true&paging=false
@@ -14,9 +19,9 @@ DHIS2_Test_Server_URL = 'https://ocr.twoca.org/'
 def getUID(item_type, search_items):
     filter_param = 'filter=' + '&filter='.join([f'name:ilike:{term}' for term in search_items])
 
-    url = f'{DHIS2_Test_Server_URL}/api/{item_type}?{filter_param}'
+    url = f'{DHIS2_SERVER_URL}/api/{item_type}?{filter_param}'
 
-    response = requests.get(url, auth=(dhis2_username, dhis2_password))
+    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
     if response.status_code == 401:
         raise ValueError("Authentication failed. Check your username and password.")
     

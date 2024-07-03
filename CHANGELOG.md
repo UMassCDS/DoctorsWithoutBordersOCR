@@ -6,28 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 You should also add project tags for each release in Github, see [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
-## [2.0.0] - 2024-05-29
+## [0.0.1] - 2024-07-03
 ### Added
-- Added example auto-built Sphinx documentation in the `docs` folder
-- Github workflow for running ruff linter
-- A note about conda dependencies to README
-- A note about using docker containers to README
-- Ruff as a linter for development
-### Changed
-- All build and packaging switched to use only pyproject.toml
-- Minimum python version changed to 3.10
-- Github workflow checks python versions 3.10, 3.11, 3.12
-- Updated DVC version to avoid `ImportError: cannot import name 'fsspec_loop'` in older versions
-### Removed
-- Removed setup.cfg
-
-## [1.0.0] - 2022-05-23
-### Added
-- README and CHANGELOG
-- cdstemplate packages for computing word count from input text
-- corpus_counter_script.py as a user-facing script with argparse examples
-- Tests of cdstemplate packages
-- A github workflow to trigger tests on pull request to the main branch
-- Sample text data from Project Gutenberg
-- Data Version Control stage for the corpus_counter_script.py
-- A sample Jupyter notebook that plots most frequent words the Gutenberg data
+- Notebook for downloading sample test data
+- msfocr.data.data_upload_DHIS2 created for sending key/value pairs to a DHIS2 server
+- msfocr.docTR created to implement extracting tables from images using image2table and docTR
+- Initial package structure created
