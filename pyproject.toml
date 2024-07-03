@@ -42,7 +42,10 @@ dependencies = [
 
 [project.optional-dependencies]
 # Extra dependencies only needed for running tests go here
-test = ["pytest"]
+test = [
+    "pytest",
+    "requests_mock",
+    ]
 
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
 dev = [

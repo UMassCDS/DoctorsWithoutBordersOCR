@@ -176,9 +176,11 @@ def generate_key_value_pairs(table):
                 print(data_element, data_element_id)
                 category_id = data_upload_DHIS2.getUID('categoryOptions', [category])
                 # Append to the list of data elements to be push to DHIS2
-                data_element_pairs.append({  'dataElement': data_element_id,
+                data_element_pairs.append(
+                    {'dataElement': data_element_id,
                     'categoryOptions': category_id,
-                    'value': cell_value})
+                    'value': cell_value}
+                    )
 
     return data_element_pairs
 
