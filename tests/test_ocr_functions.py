@@ -1,9 +1,10 @@
-from msfocr.docTR import ocr_functions
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
 import pandas as pd
+
+from msfocr.docTR import ocr_functions
 
 def test_get_sheet_type(datadir):
     """
@@ -21,7 +22,7 @@ def test_get_sheet_type(datadir):
     assert sheet_type[2] == ["2024-06-25", "2024-06-30"]
 
 
-def test_generate_key_value_pairs():
+def test_generate_key_value_pairs(test_server_config, requests_mock):
     """
     Tests if the dataElement value in the key-value pairs is correct by providing sample tablular data.
     """
@@ -41,6 +42,11 @@ def test_generate_key_value_pairs():
         '5-14y': [None, None, None]
     })
     
+    requests_mock.get("http://test.com/api/dataElements?filter=name:ilike:BCG", json={"dataElements":[{"id": 1, "displayName": "AVAC_002 BCG"}]})
+    requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:0-11m", json={'categoryOptions': [{'id': 2, 'displayName': '0-11m'}]})
+    requests_mock.get("http://test.com/api/dataElements?filter=name:ilike:Polio (OPV) 1 (from 6 wks)", json={'dataElements': [{'id': 3, 'displayName': 'AVAC_006 Polio (OPV) 1 (from 6 wks)'}]})
+    requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 'tWRttYIzvBn', 'displayName': '12-59m'}]})
+
     answer = [{'dataElement': '', 'categoryOptions': '', 'value': '45+29'},
               {'dataElement': '', 'categoryOptions': '', 'value': '30+18'},
               {'dataElement': '', 'categoryOptions': '', 'value': '55+29'}]
