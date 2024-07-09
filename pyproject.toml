@@ -52,7 +52,6 @@ dev = [
     "seaborn",
     "anthropic",
     "Pillow", 
-    "dotenv"
 ]
 
 # If your project contains scripts you'd like to be available command line, you can define them here.
