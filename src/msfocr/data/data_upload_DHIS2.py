@@ -40,6 +40,6 @@ def getAllUIDs(item_type, search_items):
     if len(items) > 0:
         print(items[0])
 
-    id = [(item['displayName'], item['id']) for item in items]
+    uid = [(item['displayName'], item['id']) for item in items]
 
-    return id
+    return uid
