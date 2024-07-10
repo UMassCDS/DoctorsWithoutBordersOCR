@@ -1,5 +1,5 @@
 import configparser
-
+import urllib.parse
 import requests
 
 # Set these before trying to make requests
@@ -26,8 +26,14 @@ def configure_DHIS2_server(config_path = "settings.ini"):
 # Get all UIDs from list for dataSet, period, orgUnit
 # Known Words in dataSet
 def getAllUIDs(item_type, search_items):
-    filter_param = 'filter=' + '&filter='.join([f'name:ilike:{term}' for term in search_items])
 
+    encoded_search_items = [urllib.parse.quote_plus(item) for item in search_items]
+
+    if item_type=='dataElements':
+        filter_param = 'filter=' + '&filter='.join([f'formName:ilike:{term}' for term in encoded_search_items])
+    else:
+        filter_param = 'filter=' + '&filter='.join([f'name:ilike:{term}' for term in encoded_search_items])
+        
     url = f'{DHIS2_SERVER_URL}/api/{item_type}?{filter_param}'
     response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
     if response.status_code == 401:
