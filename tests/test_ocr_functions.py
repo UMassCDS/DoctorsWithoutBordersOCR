@@ -42,9 +42,9 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
         '5-14y': [None, None, None]
     })
     
-    requests_mock.get("http://test.com/api/dataElements?filter=name:ilike:BCG", json={"dataElements":[{"id": 1, "displayName": "AVAC_002 BCG"}]})
+    requests_mock.get("http://test.com/api/dataElements?filter=formName:ilike:BCG", json={"dataElements":[{"id": 1, "displayName": "AVAC_002 BCG"}]})
     requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:0-11m", json={'categoryOptions': [{'id': 2, 'displayName': '0-11m'}]})
-    requests_mock.get("http://test.com/api/dataElements?filter=name:ilike:Polio (OPV) 1 (from 6 wks)", json={'dataElements': [{'id': 3, 'displayName': 'AVAC_006 Polio (OPV) 1 (from 6 wks)'}]})
+    requests_mock.get("http://test.com/api/dataElements?filter=formName:ilike:Polio (OPV) 1 (from 6 wks)", json={'dataElements': [{'id': 3, 'displayName': 'AVAC_006 Polio (OPV) 1 (from 6 wks)'}]})
     requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 'tWRttYIzvBn', 'displayName': '12-59m'}]})
 
     answer = [{'dataElement': '', 'categoryOptions': '', 'value': '45+29'},
