@@ -179,9 +179,14 @@ def generate_key_value_pairs(table):
                     data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element])[0][1]
                     id_found[data_element] = data_element_id
                     print(data_element, data_element_id)
+                else:
+                    data_element_id = id_found[data_element]    
                 if category not in id_found:
                     category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category])[0][1]
                     id_found[category] = category_id
+                else:
+                    category_id = id_found[category]  
+                      
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
                     {'dataElement': data_element_id,
