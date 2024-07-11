@@ -161,6 +161,9 @@ def generate_key_value_pairs(table):
     :param table: DataFrame generated from table detection
     :return: List of key value pairs as shown above.
     """
+    # Save UIDs found in a dictionary to avoid repeated UID querying
+    id_found = {}
+    
     data_element_pairs = []
     # Iterate over each cell in the DataFrame
     table_array = table.values
@@ -171,10 +174,19 @@ def generate_key_value_pairs(table):
             category = columns[col_index]
             cell_value = table_array[row_index][col_index]
             if cell_value is not None:
-                # Retrive UIDs for dataElement and categoryOption
-                data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element])
-                print(data_element, data_element_id)
-                category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category])
+                if data_element not in id_found:
+                    # Retrive UIDs for dataElement and categoryOption
+                    data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element])[0][1]
+                    id_found[data_element] = data_element_id
+                    print(data_element, data_element_id)
+                else:
+                    data_element_id = id_found[data_element]    
+                if category not in id_found:
+                    category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category])[0][1]
+                    id_found[category] = category_id
+                else:
+                    category_id = id_found[category]  
+                      
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
                     {'dataElement': data_element_id,
@@ -216,15 +228,25 @@ def generate_key_value_pairs(table):
 #                     max_similarity = sim
 #                     table.iloc[row_index, 0] = name
 
+# from msfocr.data import data_upload_DHIS2
 
+# data_upload_DHIS2.configure_DHIS2_server()
 # df = pd.DataFrame({
 #         '0': ['Paed (0-59m) vacc target population'],
-#         '0-11m': [None],
-#         '12-59m': [None],
-#         '5-14y': [None]
+#         '0-11m': [1],
+#         '12-59m': [12],
+#         '5-14y': [30]
+#     })
+# df1 = pd.DataFrame({
+#         '0': ['BCG', 'HepB (birth dose, within 24h)', 'HepB (birth dose, 24h or later)', 'Polio (OPV) 0 (birth dose)', 
+#               'Polio (OPV) 1 (from 6 wks)', 'Polio (OPV) 2', 'Polio (OPV) 3', 'Polio (IPV)', 'DTP+Hib+HepB (pentavalent) 1', 
+#               'DTP+Hib+HepB (pentavalent) 2', 'DTP+Hib+HepB (pentavalent) 3'],
+#         '0-11m': ['45+29', 1, '30+18', 1, 5, 2, 3,4,5,6,7],
+#         '12-59m': [None, None, '55+29', 4,5,6,7,8,9,10,11],
+#         '5-14y': [None, None, None, 4,5,6,7,8,9,10,'11'],
 #     })
 
-# print(generate_key_value_pairs(df))
+# print(len(generate_key_value_pairs(df1)))
 
 # df = pd.DataFrame({
 #         '0': ['BCG', 'HepB (birth dose, within 24h)', 'HepB (birth dose, 24h or later)',
