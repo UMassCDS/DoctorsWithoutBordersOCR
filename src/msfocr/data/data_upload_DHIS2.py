@@ -51,7 +51,7 @@ def getOrgUnitChildren(uid):
     :param uid: String of organization unit UID
     :return: List of (org unit child name, org unit child data sets))
     """
-    url = f'{DHIS2_SERVER_URL}/api/33/organisationUnits/{uid}?includeChildren=true'
+    url = f'{DHIS2_SERVER_URL}/api/organisationUnits/{uid}?includeChildren=true'
     
     response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
     if response.status_code == 401:
@@ -60,7 +60,7 @@ def getOrgUnitChildren(uid):
     
     data = response.json()
     items = data['organisationUnits']
-    children = [(item['name'], item['dataSets']) for item in items if item['id'] != uid]
+    children = [(item['name'], item['dataSets'], item['id']) for item in items if item['id'] != uid]
     
     return children
 
@@ -74,7 +74,7 @@ def getDataSets(data_sets_uids):
     
     for uid_obj in data_sets_uids:
         uid = uid_obj['id']
-        url = f'{DHIS2_SERVER_URL}/api/33/dataSets/{uid}'
+        url = f'{DHIS2_SERVER_URL}/api/dataSets/{uid}'
         
         response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
         if response.status_code == 401:
@@ -82,7 +82,7 @@ def getDataSets(data_sets_uids):
         response.raise_for_status()
         
         data = response.json()
-        data_set = (data['name'], data['id'])
+        data_set = (data['name'], data['id'], data['periodType'])
         data_sets.append(data_set)
         
     return data_sets
