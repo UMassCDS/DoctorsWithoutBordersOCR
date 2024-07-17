@@ -155,7 +155,7 @@ def generate_key_value_pairs(table, dataSet_uid):
     """
     Generates key-value pairs in the format required to upload data to DHIS2.
     {'dataElement': data_element_id,
-     'categoryCombo': category_id,
+     'categoryOptionCombo': category_id,
      'value': cell_value}
      UIDs like data_element_id, category_id are obtained by querying the DHIS2 metadata.
     :param table: DataFrame generated from table detection
