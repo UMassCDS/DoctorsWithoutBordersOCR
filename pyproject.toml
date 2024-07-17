@@ -22,12 +22,6 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "azure-common==1.1.28",
-    "azure-core==1.26.1",
-    "azure-identity==1.12.0",
-    "azure-keyvault==4.2.0",
-    "azure-keyvault-secrets==4.6.0",
-    "azure-storage-blob==12.14.1",
     "python-doctr",
     "img2table",
     "requests",
@@ -36,22 +30,28 @@ dependencies = [
     "pandas",
     "python-Levenshtein",
     "torchvision",
-    "pytest-datadir",
-    'notebook'
 ]
 
 [project.optional-dependencies]
 # Extra dependencies only needed for running tests go here
 test = [
     "pytest",
+    "pytest-datadir",
     "requests_mock",
     ]
 
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
 dev = [
+    "azure-common==1.1.28",
+    "azure-core==1.26.1",
+    "azure-identity==1.12.0",
+    "azure-keyvault==4.2.0",
+    "azure-keyvault-secrets==4.6.0",
+    "azure-storage-blob==12.14.1",
     "ruff",
     "jupyter",
     "matplotlib",
+    "notebook",
     "seaborn",
     "sphinx",
 ]
