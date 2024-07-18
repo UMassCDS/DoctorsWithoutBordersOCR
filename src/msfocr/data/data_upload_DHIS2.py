@@ -92,3 +92,54 @@ def getDataSets(data_sets_uids):
         data_sets.append(data_set)
         
     return data_sets
+
+def getCategoryUIDs(dataSet_uid):
+    """
+    Hierarchically searches DHIS2 to generate category UIDs for each dataElement.
+    :param data_sets_uid: UID of the dataset
+    :return: Dictionary of dataElement:categoryCombo_UID, Dictionary of categoryComboUID: {name of category: category_UID}
+    """
+    url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}?fields=dataSetElements'
+
+    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
+    if response.status_code == 401:
+        raise ValueError("Authentication failed. Check your username and password.")
+    response.raise_for_status()
+    
+    data = response.json()
+
+    items = data['dataSetElements']
+
+    dataElement_to_categoryCombo = {}
+    categoryCombos = {}
+    for item in items:
+        if 'categoryCombo' in item:
+            dataElement_to_categoryCombo[item['dataElement']['id']] = item['categoryCombo']['id']
+            categoryCombos[item['categoryCombo']['id']] = {}
+ 
+    for catCombo_id in categoryCombos:
+        url = f'{DHIS2_SERVER_URL}/api/categoryCombos/{catCombo_id}?fields=categoryOptionCombos'
+
+        response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
+        if response.status_code == 401:
+            raise ValueError("Authentication failed. Check your username and password.")
+        response.raise_for_status()
+        
+        data = response.json()
+
+        items = data['categoryOptionCombos']
+
+        for item in items:
+            url = f"{DHIS2_SERVER_URL}/api/categoryOptionCombos/{item['id']}?fields=name"
+
+            response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
+            if response.status_code == 401:
+                raise ValueError("Authentication failed. Check your username and password.")
+            response.raise_for_status()
+            
+            data = response.json()
+
+            categoryCombos[catCombo_id][data['name']] = item['id']
+
+    return dataElement_to_categoryCombo, categoryCombos       
+

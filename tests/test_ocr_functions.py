@@ -33,7 +33,12 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
         '5-14y': [None]
     })
 
-    assert len(ocr_functions.generate_key_value_pairs(df)) == 0
+    requests_mock.get("http://test.com/api/dataSets/10?fields=dataSetElements", json={'dataSetElements' : [{"categoryCombo": {"id": 5},"dataElement": {"id": 1},"dataSet": {"id": 10}}, {"categoryCombo": {"id": 5},"dataElement": {"id": 3},"dataSet": {"id": 10}}]})
+    requests_mock.get("http://test.com/api/categoryCombos/5?fields=categoryOptionCombos", json={"categoryOptionCombos": [{"id": 8}, {"id": 9}]})
+    requests_mock.get("http://test.com/api/categoryOptionCombos/8?fields=name", json={"name": "0-11m"})
+    requests_mock.get("http://test.com/api/categoryOptionCombos/9?fields=name", json={"name": "12-59m"})
+
+    assert len(ocr_functions.generate_key_value_pairs(df, 10)) == 0
 
     df = pd.DataFrame({
         '0': ['BCG', 'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
@@ -45,13 +50,13 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
     requests_mock.get("http://test.com/api/dataElements?filter=formName:ilike:BCG", json={"dataElements":[{"id": 1, "displayName": "AVAC_002 BCG"}]})
     requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:0-11m", json={'categoryOptions': [{'id': 2, 'displayName': '0-11m'}]})
     requests_mock.get("http://test.com/api/dataElements?filter=formName:ilike:Polio (OPV) 1 (from 6 wks)", json={'dataElements': [{'id': 3, 'displayName': 'AVAC_006 Polio (OPV) 1 (from 6 wks)'}]})
-    requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 'tWRttYIzvBn', 'displayName': '12-59m'}]})
+    requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 4, 'displayName': '12-59m'}]})
 
     answer = [{'dataElement': '', 'categoryOptions': '', 'value': '45+29'},
               {'dataElement': '', 'categoryOptions': '', 'value': '30+18'},
               {'dataElement': '', 'categoryOptions': '', 'value': '55+29'}]
 
-    data_element_pairs = ocr_functions.generate_key_value_pairs(df)
+    data_element_pairs = ocr_functions.generate_key_value_pairs(df, 10)
     assert len(data_element_pairs) == len(answer)
 
     for i in range(len(data_element_pairs)):

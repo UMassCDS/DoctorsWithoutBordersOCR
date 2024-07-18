@@ -151,11 +151,11 @@ def get_sheet_type(res):
     return [dataSet, orgUnit, sorted(period)]
 
 
-def generate_key_value_pairs(table):
+def generate_key_value_pairs(table, dataSet_uid):
     """
     Generates key-value pairs in the format required to upload data to DHIS2.
     {'dataElement': data_element_id,
-     'categoryCombo': category_id,
+     'categoryOptionCombo': category_id,
      'value': cell_value}
      UIDs like data_element_id, category_id are obtained by querying the DHIS2 metadata.
     :param table: DataFrame generated from table detection
@@ -164,6 +164,9 @@ def generate_key_value_pairs(table):
     # Save UIDs found in a dictionary to avoid repeated UID querying
     id_found = {}
     
+    # Get dataElement to UID map for all dataElements in the dataset 
+    dataElement_to_categoryCombo, categoryCombos_to_name_to_id = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
+
     data_element_pairs = []
     # Iterate over each cell in the DataFrame
     table_array = table.values
@@ -181,17 +184,17 @@ def generate_key_value_pairs(table):
                     print(data_element, data_element_id)
                 else:
                     data_element_id = id_found[data_element]    
-                if category not in id_found:
-                    category_id = data_upload_DHIS2.getAllUIDs('categoryOptions', [category])[0][1]
-                    id_found[category] = category_id
-                else:
-                    category_id = id_found[category]  
-                      
+
+                # Get category_UID for each dataElement
+                categoryCombo = dataElement_to_categoryCombo[data_element_id]
+                categoryOptionCombos = categoryCombos_to_name_to_id[categoryCombo]
+                category_id = categoryOptionCombos[category]
+
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
-                    {'dataElement': data_element_id,
-                    'categoryOptions': category_id,
-                    'value': cell_value}
+                    {"dataElement": data_element_id,
+                    "categoryOptionCombo": category_id,
+                    "value": cell_value}
                     )
 
     return data_element_pairs
@@ -251,9 +254,10 @@ def generate_key_value_pairs(table):
 # df = pd.DataFrame({
 #         '0': ['BCG', 'HepB (birth dose, within 24h)', 'HepB (birth dose, 24h or later)',
 #               'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
-#         '0-11m': ['45+29', None, None, '30+18', '55+29'],
-#         '12-59m': [None, None, None, None, None],
-#         '5-14y': [None, None, None, None, None]
+#         '0-11m': ['45+29', None, None, None, None],
+#         '12-59m': [None, None, '5', None, None],
+#         '5-14y': [None, None, None, '6', None]
 #     })
+# print(df)
+# print(generate_key_value_pairs(df, 'TgsFGeESrGz'))
 
-# print(generate_key_value_pairs(df))
