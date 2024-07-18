@@ -37,9 +37,9 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
     requests_mock.get("http://test.com/api/categoryCombos/5?fields=categoryOptionCombos", json={"categoryOptionCombos": [{"id": 8}, {"id": 9}]})
     requests_mock.get("http://test.com/api/categoryOptionCombos/8?fields=name", json={"name": "0-11m"})
     requests_mock.get("http://test.com/api/categoryOptionCombos/9?fields=name", json={"name": "12-59m"})
-    requests_mock.get("http://test.com/api/dataElements?filter=dataSetElements.dataSet.id:eq:10&fields=formName", json={'dataElements': [{'formName': '0-11m'}]})
+    requests_mock.get("http://test.com/api/dataElements?filter=dataSetElements.dataSet.id:eq:10&fields=id,formName", json={'dataElements': [{'formName': 'BCG','id':1},{'formName': 'Polio (OPV) 1 (from 6 wks)','id':3}]})
 
-    assert len(ocr_functions.generate_key_value_pairs(df, 10)[0]) == 0
+    assert len(ocr_functions.generate_key_value_pairs(df, 10)) == 0
 
     df = pd.DataFrame({
         '0': ['BCG', 'Polio (OPV) 0 (birth dose)', 'Polio (OPV) 1 (from 6 wks)'],
@@ -57,7 +57,7 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
               {'dataElement': '', 'categoryOptions': '', 'value': '30+18'},
               {'dataElement': '', 'categoryOptions': '', 'value': '55+29'}]
 
-    data_element_pairs = ocr_functions.generate_key_value_pairs(df, 10)[0]
+    data_element_pairs = ocr_functions.generate_key_value_pairs(df, 10)
     assert len(data_element_pairs) == len(answer)
 
     for i in range(len(data_element_pairs)):
