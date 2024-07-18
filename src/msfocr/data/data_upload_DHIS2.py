@@ -145,13 +145,14 @@ def getCategoryUIDs(dataSet_uid):
                 categoryOptionCombos[data['name']] = ''
     category_list = list(categoryOptionCombos.keys())
                                     
-    url = f'{DHIS2_SERVER_URL}/api/dataElements?filter=dataSetElements.dataSet.id:eq:{dataSet_uid}&fields=formName'
+    url = f'{DHIS2_SERVER_URL}/api/dataElements?filter=dataSetElements.dataSet.id:eq:{dataSet_uid}&fields=id,formName'
     response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
     checkResponseStatus(response)
-    data = response.json()                                
-    
+    data = response.json()                   
+
+    dataElement_to_id = {item["formName"]:item["id"] for item in data['dataElements']}
     dataElement_list = [item["formName"] for item in data['dataElements']]
 
-    return dataElement_to_categoryCombo, categoryCombos, category_list, dataElement_list       
+    return dataElement_to_id, dataElement_to_categoryCombo, categoryCombos, category_list, dataElement_list       
        
 
