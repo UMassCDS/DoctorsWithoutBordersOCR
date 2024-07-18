@@ -144,7 +144,19 @@ def getCategoryUIDs(dataSet_uid):
 
             if data['name'] not in categoryOptionCombos:
                 categoryOptionCombos[data['name']] = ''
+    category_list = list(categoryOptionCombos.keys())
+                                    
+    url = f'{DHIS2_SERVER_URL}/api/dataElements?filter=dataSetElements.dataSet.id:eq:{dataSet_uid}&fields=formName'
 
-    return dataElement_to_categoryCombo, categoryCombos, list(categoryOptionCombos.keys())       
+    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
+    if response.status_code == 401:
+        raise ValueError("Authentication failed. Check your username and password.")
+    response.raise_for_status()
+    
+    data = response.json()                                
+    
+    dataElement_list = [item["formName"] for item in data['dataElements']]
+
+    return dataElement_to_categoryCombo, categoryCombos, category_list, dataElement_list       
        
 
