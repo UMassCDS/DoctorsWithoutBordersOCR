@@ -112,6 +112,7 @@ def getCategoryUIDs(dataSet_uid):
 
     dataElement_to_categoryCombo = {}
     categoryCombos = {}
+    categoryOptionCombos = {}
     for item in items:
         if 'categoryCombo' in item:
             dataElement_to_categoryCombo[item['dataElement']['id']] = item['categoryCombo']['id']
@@ -141,5 +142,9 @@ def getCategoryUIDs(dataSet_uid):
 
             categoryCombos[catCombo_id][data['name']] = item['id']
 
-    return dataElement_to_categoryCombo, categoryCombos       
+            if data['name'] not in categoryOptionCombos:
+                categoryOptionCombos[data['name']] = ''
+
+    return dataElement_to_categoryCombo, categoryCombos, list(categoryOptionCombos.keys())       
+       
 

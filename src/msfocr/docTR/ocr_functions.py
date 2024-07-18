@@ -165,7 +165,7 @@ def generate_key_value_pairs(table, dataSet_uid):
     id_found = {}
     
     # Get dataElement to UID map for all dataElements in the dataset 
-    dataElement_to_categoryCombo, categoryCombos_to_name_to_id = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
+    dataElement_to_categoryCombo, categoryCombos_to_name_to_id, categoryOptionCombos = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
 
     data_element_pairs = []
     # Iterate over each cell in the DataFrame
@@ -197,7 +197,7 @@ def generate_key_value_pairs(table, dataSet_uid):
                     "value": cell_value}
                     )
 
-    return data_element_pairs
+    return data_element_pairs, categoryOptionCombos
 
 
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
