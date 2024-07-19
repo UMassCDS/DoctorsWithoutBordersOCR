@@ -37,6 +37,7 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
     requests_mock.get("http://test.com/api/categoryCombos/5?fields=categoryOptionCombos", json={"categoryOptionCombos": [{"id": 8}, {"id": 9}]})
     requests_mock.get("http://test.com/api/categoryOptionCombos/8?fields=name", json={"name": "0-11m"})
     requests_mock.get("http://test.com/api/categoryOptionCombos/9?fields=name", json={"name": "12-59m"})
+    requests_mock.get("http://test.com/api/dataElements?filter=dataSetElements.dataSet.id:eq:10&fields=id,formName", json={'dataElements': [{'formName': 'BCG','id':1},{'formName': 'Polio (OPV) 1 (from 6 wks)','id':3}]})
 
     assert len(ocr_functions.generate_key_value_pairs(df, 10)) == 0
 

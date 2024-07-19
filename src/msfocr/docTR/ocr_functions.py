@@ -165,7 +165,7 @@ def generate_key_value_pairs(table, dataSet_uid):
     id_found = {}
     
     # Get dataElement to UID map for all dataElements in the dataset 
-    dataElement_to_categoryCombo, categoryCombos_to_name_to_id = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
+    dataElement_to_id, dataElement_to_categoryCombo, categoryCombos_to_name_to_id,_,_ = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
 
     data_element_pairs = []
     # Iterate over each cell in the DataFrame
@@ -179,7 +179,7 @@ def generate_key_value_pairs(table, dataSet_uid):
             if cell_value is not None:
                 if data_element not in id_found:
                     # Retrive UIDs for dataElement and categoryOption
-                    data_element_id = data_upload_DHIS2.getAllUIDs('dataElements', [data_element])[0][1]
+                    data_element_id = dataElement_to_id[data_element]
                     id_found[data_element] = data_element_id
                     print(data_element, data_element_id)
                 else:
@@ -259,5 +259,8 @@ def generate_key_value_pairs(table, dataSet_uid):
 #         '5-14y': [None, None, None, '6', None]
 #     })
 # print(df)
-# print(generate_key_value_pairs(df, 'TgsFGeESrGz'))
+# a,b,c = generate_key_value_pairs(df, 'TgsFGeESrGz')
+# print(a)
+# print(b)
+# print(c)
 
