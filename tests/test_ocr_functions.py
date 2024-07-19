@@ -4,7 +4,7 @@ from img2table.document import Image
 from img2table.ocr import DocTR
 import pandas as pd
 
-from msfocr.docTR import ocr_functions
+from msfocr.doctr import ocr_functions
 
 def test_get_sheet_type(datadir):
     """

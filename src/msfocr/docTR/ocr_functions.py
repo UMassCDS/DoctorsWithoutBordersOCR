@@ -1,13 +1,15 @@
+from datetime import datetime
+import re
+
 # from doctr.io import DocumentFile
 # from doctr.models import ocr_predictor
 # from img2table.document import Image
 # from img2table.ocr import DocTR
-from msfocr.data import data_upload_DHIS2
-import re
+import Levenshtein
 import numpy as np
 import pandas as pd
-import Levenshtein
-from datetime import datetime
+
+from msfocr.data import dhis2
 
 
 def letter_by_letter_similarity(text1, text2):
@@ -165,7 +167,7 @@ def generate_key_value_pairs(table, dataSet_uid):
     id_found = {}
     
     # Get dataElement to UID map for all dataElements in the dataset 
-    dataElement_to_id, dataElement_to_categoryCombo, categoryCombos_to_name_to_id,_,_ = data_upload_DHIS2.getCategoryUIDs(dataSet_uid)
+    dataElement_to_id, dataElement_to_categoryCombo, categoryCombos_to_name_to_id,_,_ = dhis2.getCategoryUIDs(dataSet_uid)
 
     data_element_pairs = []
     # Iterate over each cell in the DataFrame
