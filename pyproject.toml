@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "msfocr"
-version = "0.0.1"
+version = "1.0.0"
 description = "The backend to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
@@ -22,13 +22,14 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "python-doctr",
     "img2table",
+    "numpy",
+    "openai",
+    "pandas",
+    "python-doctr",
+    "python-Levenshtein",
     "requests",
     "torch",
-    "numpy",
-    "pandas",
-    "python-Levenshtein",
     "torchvision",
 ]
 

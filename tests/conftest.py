@@ -1,9 +1,8 @@
-import configparser
 from pathlib import Path
 
 import pytest
 
-from msfocr.data.data_upload_DHIS2 import configure_DHIS2_server
+import msfocr.data.dhis2
 
 @pytest.fixture
 def datadir():
@@ -13,19 +12,10 @@ def datadir():
 
 
 @pytest.fixture
-def test_server_config(tmp_path): 
+def test_server_config(): 
     """Configure a mock DHIS2 server to mimic requests. 
     You will still need to use requests_mock to imitate responses from http://test.com.
     """
-    config = configparser.ConfigParser()
-    config["DHIS2Server"] = {"username": "tester",
-                             "password": "testing_password",
-                             "server_url": "http://test.com"
-                            }
-    configpath = tmp_path / "test_settings.ini"
-    with configpath.open("w") as configfile:
-        config.write(configfile)
-
-    configure_DHIS2_server(configpath)
+    msfocr.data.dhis2.configure_DHIS2_server("tester", "testing_password", "http://test.com")
 
 

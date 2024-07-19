@@ -1,38 +1,27 @@
-import configparser
 import urllib.parse
+
 import requests
 
-# Set these before trying to make requests
+# Make sure these are set before trying to make requests
 DHIS2_USERNAME = None
 DHIS2_PASSWORD = None
 DHIS2_SERVER_URL = None
 
 # TODO It might be clearer to create a Server object class and have this be the __init__() function
-def configure_DHIS2_server(config_path = "settings.ini"):
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    dhis2_section = config["DHIS2Server"]
+def configure_DHIS2_server(username=None, password=None, server_url=None):
     global DHIS2_SERVER_URL, DHIS2_USERNAME, DHIS2_PASSWORD
-    DHIS2_USERNAME = dhis2_section["username"]
-    DHIS2_PASSWORD = dhis2_section["password"]
-    DHIS2_SERVER_URL = dhis2_section["server_url"]
+    DHIS2_USERNAME = username
+    DHIS2_PASSWORD = password
+    DHIS2_SERVER_URL = server_url
 
-
-# Command to get all fields that are organisationUnits
-# TestServerURL/api/organisationUnits.json?fields=:all&includeChildren=true&paging=false
-# /api/categoryOptions?fields=name'
-# [categories, categoryOptions, dataSets, organisationUnits, dataElements]
-
-# Get all UIDs from list for dataSet, period, orgUnit
-# Known Words in dataSet
 
 def checkResponseStatus(res):
     if res.status_code == 401:
         raise ValueError("Authentication failed. Check your username and password.")
     res.raise_for_status()
 
-def getAllUIDs(item_type, search_items):
 
+def getAllUIDs(item_type, search_items):
     encoded_search_items = [urllib.parse.quote_plus(item) for item in search_items]
 
     if item_type=='dataElements':
