@@ -95,13 +95,9 @@ def getDataSets(data_sets_uids):
 
 def getCategoryUIDs(dataSet_uid):
     """
-    Hierarchically searches DHIS2 to generate category UIDs for each dataElement.
+    Hierarchically searches DHIS2 to generate category UIDs for each dataElement. Also used for retreiving all data elements and categories present in a dataset.
     :param data_sets_uid: UID of the dataset
-    :return: Dictionary of dataElement:categoryCombo_UID, Dictionary of categoryComboUID: {name of category: category_UID}
-
-    Also used for retreiving all data elements and categories present in a dataset.
-    :param data_sets_uid: UID of the dataset
-    :return: Data element list eg. ['Paed (0-59m) vacc target population', 'BCG', 'HepB (birth dose, within 24h)',...], 
+    :return: dataElement_to_id (dict[str, str]), dataElement_to_categoryCombo (dict[str, str]), categoryCombos (dict[str, str]), category_list (list[str]), dataElement_list (list[str])
              category list eg. ['0-11m','<5y'...]
     """
     url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}?fields=dataSetElements'
