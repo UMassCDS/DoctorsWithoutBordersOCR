@@ -1,25 +1,13 @@
+"""Processing images by working with the OpenAI API. 
+Note that the OPENAI_API_KEY environment variable must be set for this module to work correctly. 
+This should be done before you run your program. See https://github.com/openai/openai-python for details
+""" 
 import base64
 import json
 import pandas as pd
-from PIL import Image, ExifTags
+
 from openai import OpenAI
-import configparser
-
-OPENAI_API_KEY = None
-
-def configure_openai(config_path="settings.ini"):
-    """
-    Configures the OpenAI API key from a settings file.
-
-    Usage:
-    configure_openai()  # Uses default settings.ini
-    configure_openai("custom_settings.ini")  # Uses a custom config file
-    """
-    config = configparser.ConfigParser()
-    config.read(config_path)
-    openai_section = config["OpenAI"]
-    global OPENAI_API_KEY
-    OPENAI_API_KEY = openai_section["api_key"]
+from PIL import Image, ExifTags
 
 
 def get_results(uploaded_image_paths):
@@ -90,8 +78,7 @@ def extract_text_from_image(image_path):
     :param image_path: Path to the image file.
     :return: JSON object containing extracted text and table data.
     """
-    configure_openai()
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    client = OpenAI()
     MODEL = "gpt-4o"
     base64_image = encode_image(image_path)
     response = client.chat.completions.create(

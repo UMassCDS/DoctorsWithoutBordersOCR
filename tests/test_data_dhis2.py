@@ -1,4 +1,4 @@
-from msfocr.data.data_upload_DHIS2 import getAllUIDs
+from msfocr.data.dhis2 import getAllUIDs
 
 def test_getAllUIDs(test_server_config, requests_mock):
     requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 'tWRttYIzvBn', 'displayName': '12-59m'}]})
