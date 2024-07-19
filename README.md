@@ -67,7 +67,14 @@ download_blobs_in_container(storage_account_name, storage_account_key, container
 ```
 
 ## Uploading data to a DHIS2 server
-This repository assumes assumes you will eventually want to upload data extracted from form images to a [DHIS2 health information server](https://dhis2.org/). In order to configure your connection to the DHIS2, you should fill in the server endpoint and your username and password in the `settings.ini` file. 
+This repository assumes assumes you will eventually want to upload data extracted from form images to a [DHIS2 health information server](https://dhis2.org/). In order to configure your connection to the DHIS2, you will need to set the following environment variables:
+```
+DHIS2_USERNAME=<your username>
+DHIS2_PASSWORD=<your password>
+DHIS2_SERVER_URL=<server url>
+```
+
+If you are using the OpenAI's GPT model as your OCR engine, you will also need to set `OPENAI_API_KEY` with an API key obtained from [OpenAI's online portal](https://platform.openai.com/).
 
 # Tests
 This repository has unit tests in the `tests` directory configured using [pytest](https://pytest.org/) and the Github action defined in `.github/workflows/python_package.yml` will run tests every time you make a pull request to the main branch of the repository. 
