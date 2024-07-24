@@ -5,12 +5,18 @@ This should be done before you run your program. See https://github.com/openai/o
 import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
-
 import pandas as pd
-
 from openai import OpenAI
+from openai import AzureOpenAI
 from PIL import Image, ExifTags
 
+AZURE_OPENAI_API_KEY = None
+AZURE_OPENAI_ENDPOINT = None
+
+def configure_azure_openai(api_key = None, azure_endpoint=None):
+    global AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT
+    AZURE_OPENAI_API_KEY = api_key
+    AZURE_OPENAI_ENDPOINT = azure_endpoint
 
 def get_results(uploaded_image_paths):
     """
@@ -75,7 +81,7 @@ def encode_image(image_path):
 
 def extract_text_from_image(image_path):
     """
-    Extracts text and table data from an image using OpenAI's GPT-4 vision model.
+    Extracts text and table data from an image using OpenAI's GPT-4 omni model.
 
     Usage:
     result = extract_text_from_image("path/to/image.jpg")
@@ -83,7 +89,11 @@ def extract_text_from_image(image_path):
     :param image_path: Path to the image file.
     :return: JSON object containing extracted text and table data.
     """
-    client = OpenAI()
+    client = AzureOpenAI(
+        api_key=AZURE_OPENAI_API_KEY,
+        api_version="2024-05-01-preview",
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    )
     MODEL = "gpt-4o"
     base64_image = encode_image(image_path)
     response = client.chat.completions.create(
