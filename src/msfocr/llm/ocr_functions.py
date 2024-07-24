@@ -116,7 +116,7 @@ def extract_text_from_image(image_path):
 
 def extract_text_from_batch_images(image_paths):
     """
-    Extracts text and table data from multiple images using OpenAI's GPT-4 vision model.
+    Extracts text and table data from multiple images using OpenAI's GPT-4 omni model.
     This version processes images concurrently using multithreading.
 
     Usage:
