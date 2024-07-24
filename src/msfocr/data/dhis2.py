@@ -23,10 +23,7 @@ def getAllUIDs(item_type, search_items):
         filter_param = 'filter=' + '&filter='.join([f'name:ilike:{term}' for term in encoded_search_items])
         
     url = f'{DHIS2_SERVER_URL}/api/{item_type}?{filter_param}'
-    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
-    checkResponseStatus(response)
-
-    data = response.json()
+    data = getResponse(url)
     items = data[item_type]
     print(f"{len(data[item_type])} matches found for {search_items}")
     if len(items) > 0:
@@ -36,10 +33,15 @@ def getAllUIDs(item_type, search_items):
 
     return uid
 
-def checkResponseStatus(res):
-    if res.status_code == 401:
+def getResponse(url):
+    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
+
+    if response.status_code == 401:
         raise ValueError("Authentication failed. Check your username and password.")
-    res.raise_for_status()
+    response.raise_for_status()
+
+    data = response.json()
+    return data
 
 def getOrgUnitChildren(uid):
     """
@@ -48,11 +50,7 @@ def getOrgUnitChildren(uid):
     :return: List of (org unit child name, org unit child data sets))
     """
     url = f'{DHIS2_SERVER_URL}/api/organisationUnits/{uid}?includeChildren=true'
-    
-    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
-    checkResponseStatus(response)
-    
-    data = response.json()
+    data = getResponse(url)
     items = data['organisationUnits']
     children = [(item['name'], item['dataSets'], item['id']) for item in items if item['id'] != uid]
     
@@ -70,10 +68,7 @@ def getDataSets(data_sets_uids):
         uid = uid_obj['id']
         url = f'{DHIS2_SERVER_URL}/api/dataSets/{uid}'
         
-        response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
-        checkResponseStatus(response)
-        
-        data = response.json()
+        data = getResponse(url)
         data_set = (data['name'], data['id'], data['periodType'])
         data_sets.append(data_set)
         
@@ -82,21 +77,26 @@ def getDataSets(data_sets_uids):
 def getFormJson(dataSet_uid, period, orgUnit_uid):
     url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}/form.json?pe={period}&ou={orgUnit_uid}'
 
-    response = requests.get(url, auth=(DHIS2_USERNAME, DHIS2_PASSWORD))
-    checkResponseStatus(response)
-    
-    data = response.json()
+    data = getResponse(url)
     return data
             
-def get_DE_COC_List(form, allDataElements, allCategory):
+def get_DE_COC_List(form):
+    url = f'{DHIS2_SERVER_URL}/api/dataElements?paging=false&fields=id,formName'
+    data = getResponse(url)
+    allDataElements = {item['id']:item['formName'] for item in data['dataElements'] if 'formName' in item and 'id' in item}
+
+    url = f'{DHIS2_SERVER_URL}/api/categoryOptionCombos?paging=false&fields=id,name'
+    data = getResponse(url)
+    allCategory = {item['id']:item['name'] for item in data['categoryOptionCombos'] if 'name' in item and 'id' in item}
+
     # Form tabs found in DHIS2
     tabs = form['groups']
     dataElement_list = {}
     categoryOptionCombo_list = {}
     for tab in tabs:
         for field in tab['fields']:
-            DE_ID = tab['dataElement']
-            COC_ID = tab['categoryOptionCombo']
+            DE_ID = field['dataElement']
+            COC_ID = field['categoryOptionCombo']
             if allDataElements[DE_ID] not in dataElement_list:
                 dataElement_list[allDataElements[DE_ID]] = 1
             if allCategory[COC_ID] not in categoryOptionCombo_list:
