@@ -23,11 +23,14 @@ def get_results(uploaded_image_paths):
     :param uploaded_image_paths: List of uploaded image file paths.
     :return: List of results from the OpenAI API.
     """
+    '''
     results = []
     for img_path in uploaded_image_paths:
         result = extract_text_from_image(img_path)
         results.append(result)
-    return results
+    '''
+
+    return extract_text_from_batch_images(uploaded_image_paths)
 
 
 def parse_table_data(result):
