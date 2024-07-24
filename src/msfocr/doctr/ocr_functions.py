@@ -152,8 +152,8 @@ def get_sheet_type(res):
                     period.append(date)
     return [dataSet, orgUnit, sorted(period)]
 
-
-def generate_key_value_pairs(table, dataSet_uid):
+import json
+def generate_key_value_pairs(table, form):
     """
     Generates key-value pairs in the format required to upload data to DHIS2.
     {'dataElement': data_element_id,
@@ -163,13 +163,9 @@ def generate_key_value_pairs(table, dataSet_uid):
     :param table: DataFrame generated from table detection
     :return: List of key value pairs as shown above.
     """
-    # Save UIDs found in a dictionary to avoid repeated UID querying
-    id_found = {}
-    
-    # Get dataElement to UID map for all dataElements in the dataset 
-    dataElement_to_id, dataElement_to_categoryCombo, categoryCombos_to_name_to_id,_,_ = dhis2.getCategoryUIDs(dataSet_uid)
-
+    data = json.loads(form) 
     data_element_pairs = []
+
     # Iterate over each cell in the DataFrame
     table_array = table.values
     columns = table.columns
@@ -179,18 +175,25 @@ def generate_key_value_pairs(table, dataSet_uid):
             category = columns[col_index]
             cell_value = table_array[row_index][col_index]
             if cell_value is not None:
-                if data_element not in id_found:
-                    # Retrive UIDs for dataElement and categoryOption
-                    data_element_id = dataElement_to_id[data_element]
-                    id_found[data_element] = data_element_id
-                    print(data_element, data_element_id)
-                else:
-                    data_element_id = id_found[data_element]    
-
+                # if data_element not in id_found:
+                #     # Retrive UIDs for dataElement and categoryOption
+                #     data_element_id = dhis2.getAllUIDs('dataElements', [data_element])
+                #     id_found[data_element] = data_element_id
+                #     print(data_element, data_element_id)
+                # else:
+                #     data_element_id = id_found[data_element]  
                 # Get category_UID for each dataElement
-                categoryCombo = dataElement_to_categoryCombo[data_element_id]
-                categoryOptionCombos = categoryCombos_to_name_to_id[categoryCombo]
-                category_id = categoryOptionCombos[category]
+                # categoryCombo = dataElement_to_categoryCombo[data_element_id]
+                # categoryOptionCombos = categoryCombos_to_name_to_id[categoryCombo]
+                # category_id = categoryOptionCombos[category]
+
+                string_search = data_element + " " + category
+                for group in data['groups']:
+                    for field in group['fields']:
+                        if field['label']==string_search:
+                            data_element_id = field['dataElement']
+                            category_id = field['categoryOptionCombo']
+                
 
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
