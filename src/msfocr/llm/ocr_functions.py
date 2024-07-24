@@ -6,7 +6,6 @@ import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
 import pandas as pd
-from openai import OpenAI
 from openai import AzureOpenAI
 from PIL import Image, ExifTags
 
