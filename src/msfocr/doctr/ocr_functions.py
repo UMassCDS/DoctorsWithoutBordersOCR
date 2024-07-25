@@ -9,7 +9,6 @@ import Levenshtein
 import numpy as np
 import pandas as pd
 
-from msfocr.data import dhis2
 
 
 def letter_by_letter_similarity(text1, text2):
@@ -188,7 +187,7 @@ def generate_key_value_pairs(table, form):
                 # The following exceptions will be raised if the row or column name in the tally sheet is different from the names used in metadata
                 # For eg. Pop1: Resident is called Population 1 in metadata
                 # If this exception is raised the only way forward is for the user to manually change the row/column name to the one used in metadata
-                if data_element_id==None or category_id==None:
+                if data_element_id is None or category_id is None:
                     raise Exception(f"Unable to find {string_search} in DHIS2 metadata")
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
