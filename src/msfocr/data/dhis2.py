@@ -75,12 +75,22 @@ def getDataSets(data_sets_uids):
     return data_sets
 
 def getFormJson(dataSet_uid, period, orgUnit_uid):
+    """
+    Gets information about all forms associated with a organisation, dataset, period combination in DHIS2.
+    :param dataset UID, time period, organisation unit UID
+    :return json response containing hierarchical information about tabs, tables, non-tabular fields
+    """
     url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}/form.json?pe={period}&ou={orgUnit_uid}'
 
     data = getResponse(url)
     return data
             
 def get_DE_COC_List(form):
+    """
+    Finds the list of all dataElements (row names in tables) and categoryOptionCombos (column names in tables) within a DHIS2 form
+    :param json data containing hierarchical information about tabs, tables, non-tabular fields within a organisation, dataset, period combination in DHIS2. 
+    :return List of row names found, List of column names found 
+    """
     url = f'{DHIS2_SERVER_URL}/api/dataElements?paging=false&fields=id,formName'
     data = getResponse(url)
     allDataElements = {item['id']:item['formName'] for item in data['dataElements'] if 'formName' in item and 'id' in item}
