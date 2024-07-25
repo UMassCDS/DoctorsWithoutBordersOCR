@@ -152,7 +152,6 @@ def get_sheet_type(res):
                     period.append(date)
     return [dataSet, orgUnit, sorted(period)]
 
-import json
 def generate_key_value_pairs(table, form):
     """
     Generates key-value pairs in the format required to upload data to DHIS2.
@@ -162,39 +161,37 @@ def generate_key_value_pairs(table, form):
      UIDs like data_element_id, category_id are obtained by querying the DHIS2 metadata.
     :param table: DataFrame generated from table detection
     :return: List of key value pairs as shown above.
-    """
-    data = json.loads(form) 
+    """ 
     data_element_pairs = []
 
     # Iterate over each cell in the DataFrame
     table_array = table.values
     columns = table.columns
     for row_index in range(table_array.shape[0]):
+        # Row name in tally sheet
         data_element = table_array[row_index][0]
         for col_index in range(1, table_array.shape[1]):
+            # Column name in tally sheet
             category = columns[col_index]
             cell_value = table_array[row_index][col_index]
-            if cell_value is not None:
-                # if data_element not in id_found:
-                #     # Retrive UIDs for dataElement and categoryOption
-                #     data_element_id = dhis2.getAllUIDs('dataElements', [data_element])
-                #     id_found[data_element] = data_element_id
-                #     print(data_element, data_element_id)
-                # else:
-                #     data_element_id = id_found[data_element]  
-                # Get category_UID for each dataElement
-                # categoryCombo = dataElement_to_categoryCombo[data_element_id]
-                # categoryOptionCombos = categoryCombos_to_name_to_id[categoryCombo]
-                # category_id = categoryOptionCombos[category]
-
+            if cell_value is not None and cell_value!="-" and cell_value!="":
+                data_element_id = None
+                category_id = None
+                # Search for the string in the "label" field of form information
                 string_search = data_element + " " + category
-                for group in data['groups']:
+                for group in form['groups']:
                     for field in group['fields']:
                         if field['label']==string_search:
                             data_element_id = field['dataElement']
                             category_id = field['categoryOptionCombo']
                 
-
+                # The following exceptions will be raised if the row or column name in the tally sheet is different from the names used in metadata
+                # For eg. Pop1: Resident is called Population 1 in metadata
+                # If this exception is raised the only way forward is for the user to manually change the row/column name to the one used in metadata
+                if data_element_id==None:
+                    raise Exception(f"Unable to find {data_element} in DHIS2 metadata")
+                if category_id==None:
+                    raise Exception(f"Unable to find {category} in DHIS2 metadata")
                 # Append to the list of data elements to be push to DHIS2
                 data_element_pairs.append(
                     {"dataElement": data_element_id,
@@ -203,7 +200,6 @@ def generate_key_value_pairs(table, form):
                     )
 
     return data_element_pairs
-
 
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
 # document = DocumentFile.from_images("IMG_20240514_090947.jpg")
