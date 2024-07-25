@@ -4,6 +4,8 @@ This should be done before you run your program. See https://github.com/openai/o
 """ 
 import base64
 import json
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import pandas as pd
 
 from openai import OpenAI
@@ -21,11 +23,14 @@ def get_results(uploaded_image_paths):
     :param uploaded_image_paths: List of uploaded image file paths.
     :return: List of results from the OpenAI API.
     """
+    '''
     results = []
     for img_path in uploaded_image_paths:
         result = extract_text_from_image(img_path)
         results.append(result)
-    return results
+    '''
+
+    return extract_text_from_batch_images(uploaded_image_paths)
 
 
 def parse_table_data(result):
@@ -109,6 +114,20 @@ def extract_text_from_image(image_path):
     )
     return json.loads(response.choices[0].message.content)
 
+def extract_text_from_batch_images(image_paths):
+    """
+    Extracts text and table data from multiple images using OpenAI's GPT-4 omni model.
+    This version processes images concurrently using multithreading.
+
+    Usage:
+    results = extract_text_from_images(["path/to/image1.jpg", "path/to/image2.jpg"])
+
+    :param image_paths: List of paths to the image files.
+    :return: List of JSON objects containing extracted text and table data for each image.
+    """
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(extract_text_from_image, image_paths))
+    return results
 
 def correct_image_orientation(image_path):
     """
