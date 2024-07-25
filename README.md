@@ -76,6 +76,8 @@ DHIS2_SERVER_URL=<server url>
 
 If you are using the OpenAI's GPT model as your OCR engine, you will also need to set `OPENAI_API_KEY` with an API key obtained from [OpenAI's online portal](https://platform.openai.com/).
 
+If you are using the Azure's GPT model as your OCR engine, you will also need to set `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT`.
+
 # Tests
 This repository has unit tests in the `tests` directory configured using [pytest](https://pytest.org/) and the Github action defined in `.github/workflows/python_package.yml` will run tests every time you make a pull request to the main branch of the repository. 
 
