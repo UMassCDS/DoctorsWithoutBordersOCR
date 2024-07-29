@@ -11,8 +11,8 @@ from PIL import Image as PILImage, ExifTags
 import requests
 import streamlit as st
 
-import msfocr.data.dhis2
-import msfocr.doctr.ocr_functions
+from src.msfocr.data import dhis2
+from src.msfocr.data import ocr_functions
 
 def configure_secrets():
     """Checks that necessary environment variables are set for fast failing.
@@ -21,7 +21,7 @@ def configure_secrets():
     username = os.environ["DHIS2_USERNAME"]
     password = os.environ["DHIS2_PASSWORD"]
     server_url = os.environ["DHIS2_SERVER_URL"]
-    msfocr.data.dhis2.configure_DHIS2_server(username, password, server_url)
+    dhis2.configure_DHIS2_server(username, password, server_url)
 
 # Function definitions
 @st.cache_data
@@ -51,7 +51,7 @@ def dhis2_all_UIDs(item_type, search_items):
     if search_items == "" or search_items is None:
         return []
     else:
-        return msfocr.data.dhis2.getAllUIDs(item_type, search_items)
+        return dhis2.getAllUIDs(item_type, search_items)
 
 
 # def convert_df(dfs):
@@ -85,7 +85,7 @@ def json_export(kv_pairs):
     :return Data in json format with form identification information
     """
     json_export = {}
-    if org_unit_dropdown == None:
+    if org_unit_dropdown is None:
         raise ValueError("Please select organisation unit")
     if data_set == "":
         raise ValueError("Please select data set")
@@ -116,7 +116,7 @@ def correct_field_names(dfs):
             text = table.iloc[row,0]
             if text is not None:
                 for name in dataElement_list:
-                    sim = msfocr.doctr.ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = ocr_functions.letter_by_letter_similarity(text, name)
                     if max_similarity_dataElement < sim:
                         max_similarity_dataElement = sim
                         dataElement = name
@@ -129,7 +129,7 @@ def correct_field_names(dfs):
             text = table.iloc[0,id]
             if text is not None:
                 for name in categoryOptionsList:
-                    sim = msfocr.doctr.ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = ocr_functions.letter_by_letter_similarity(text, name)
                     if max_similarity_catOpt < sim:
                         max_similarity_catOpt = sim
                         catOpt = name
@@ -160,22 +160,22 @@ def get_uploaded_images(tally_sheet):
 
 @st.cache_data
 def get_results(uploaded_images):
-    return [msfocr.doctr.ocr_functions.get_word_level_content(ocr_model, doc) for doc in uploaded_images]
+    return [ocr_functions.get_word_level_content(ocr_model, doc) for doc in uploaded_images]
 
 @st.cache_data
 def get_tabular_content_wrapper(_doctr_ocr, img, confidence_lookup_dict):
-    return msfocr.doctr.ocr_functions.get_tabular_content(_doctr_ocr, img, confidence_lookup_dict)
+    return ocr_functions.get_tabular_content(_doctr_ocr, img, confidence_lookup_dict)
 
 def get_sheet_type_wrapper(result):
-    return msfocr.doctr.ocr_functions.get_sheet_type(result)
+    return ocr_functions.get_sheet_type(result)
 
 @st.cache_data
 def get_data_sets(data_set_uids):
-    return msfocr.data.dhis2.getDataSets(data_set_uids)
+    return dhis2.getDataSets(data_set_uids)
 
 @st.cache_data
 def get_org_unit_children(org_unit_id):
-    return msfocr.data.dhis2.getOrgUnitChildren(org_unit_id)
+    return dhis2.getOrgUnitChildren(org_unit_id)
 
 @st.cache_resource
 def create_ocr():
@@ -380,7 +380,7 @@ if len(tally_sheet) > 0:
     # Populate streamlit with data recognized from tally sheets
     for result in results:
         # Get tabular data ad dataframes
-        confidence_lookup_dict = msfocr.doctr.ocr_functions.get_confidence_values(result)
+        confidence_lookup_dict = ocr_functions.get_confidence_values(result)
         table_dfs = []
         for sheet in tally_sheet:
             img = Image(src=sheet)
@@ -405,19 +405,19 @@ if len(tally_sheet) > 0:
                 
                 with col2:
                     # Add column functionality
-                    new_col_name = st.text_input(f"New column name", key=f"new_col_{i}")
-                    if st.button(f"Add Column", key=f"add_col_{i}"):
+                    new_col_name = st.text_input("New column name", key=f"new_col_{i}")
+                    if st.button("Add Column", key=f"add_col_{i}"):
                         if new_col_name:
                             table_dfs[i][new_col_name] = None
 
                     # Delete column functionality
                     if not table_dfs[i].empty:
-                        col_to_delete = st.selectbox(f"Column to delete", table_dfs[i].columns, key=f"del_col_{i}")
-                        if st.button(f"Delete Column", key=f"delete_col_{i}"):
+                        col_to_delete = st.selectbox("Column to delete", table_dfs[i].columns, key=f"del_col_{i}")
+                        if st.button("Delete Column", key=f"delete_col_{i}"):
                             table_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
 
             # Button that when clicked corrects the row and column indices of table with best match 
-            if st.button(f"Correct field names", key=f"correct_names"):
+            if st.button("Correct field names", key="correct_names"):
                 table_dfs = correct_field_names(table_dfs)   
 
             # Rerun the code to display any edits made by user
@@ -446,14 +446,14 @@ if len(tally_sheet) > 0:
                 print(final_dfs)
                 key_value_pairs = []
                 for df in final_dfs:
-                    key_value_pairs.extend(msfocr.doctr.ocr_functions.generate_key_value_pairs(df))
+                    key_value_pairs.extend(ocr_functions.generate_key_value_pairs(df))
                 st.write("Completed")
                 
                 st.session_state.data_payload = json_export(key_value_pairs)
                 print(st.session_state.data_payload)
                 
             if st.button("Upload to DHIS2"):
-                if st.session_state.data_payload==None:
+                if st.session_state.data_payload is None:
                     raise ValueError("Data empty - generate key value pairs first")
                 else:
                     URL = ''
