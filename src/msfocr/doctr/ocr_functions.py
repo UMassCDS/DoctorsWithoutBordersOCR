@@ -9,7 +9,7 @@ import Levenshtein
 import numpy as np
 import pandas as pd
 
-from msfocr.data import dhis2
+from ..data import dhis2
 
 
 def letter_by_letter_similarity(text1, text2):
