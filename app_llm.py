@@ -7,9 +7,9 @@ import requests
 import streamlit as st
 from simpleeval import simple_eval
 
-from src.msfocr.data import dhis2
-from src.msfocr.doctr import ocr_functions as doctr_ocr_functions
-from src.msfocr.llm import ocr_functions
+from msfocr.data import dhis2
+from msfocr.doctr import ocr_functions as doctr_ocr_functions
+from msfocr.llm import ocr_functions
 
 PAGE_REVIEWED_INDICATOR = "✓"
 
@@ -395,7 +395,7 @@ if st.session_state['password_correct']:
 
         # Displaying the editable information
         
-        page_options = {num for num in st.session_state.page_nums}
+        page_options = sorted({num for num in st.session_state.page_nums})
         
         page_selected = st.selectbox("Page Number", page_options)
         

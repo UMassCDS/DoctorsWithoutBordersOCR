@@ -11,8 +11,8 @@ from PIL import Image as PILImage, ExifTags
 import requests
 import streamlit as st
 
-from src.msfocr.data import dhis2
-from src.msfocr.data import ocr_functions
+from msfocr.data import dhis2
+from msfocr.data import ocr_functions
 
 def configure_secrets():
     """Checks that necessary environment variables are set for fast failing.
