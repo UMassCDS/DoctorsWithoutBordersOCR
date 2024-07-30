@@ -41,6 +41,12 @@ test = [
     "requests_mock",
     ]
 
+# Dependencies only needed to run the streamlit app go here
+app = [
+    "streamlit",
+    "simpleeval"
+    ]
+
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
 dev = [
     "azure-common==1.1.28",

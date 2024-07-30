@@ -8,6 +8,9 @@ You should also add project tags for each release in Github, see [Managing relea
 
 ## [Unreleased]
 
+### Added
+- Merged the MSF-OCR-Streamlit repository into this repository
+
 ## [1.1.0] - 2024-07-26
 ### Changed
 - Requests to OpenAI are multithreaded to speed up time to get results for multiple images
