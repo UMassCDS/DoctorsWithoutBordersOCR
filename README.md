@@ -112,7 +112,7 @@ If you are using the `app_llm.py` version of the application, you will also need
 ## Docker Instructions
 We have provided a Dockerfile in order to easily build and deploy the OpenAI application version as a Docker container. 
 
-1) Build an image named `msf-streamlit`: `docker build -t msf-streamlit .`. Note the `msfocr` package is in a private repository, so you may want to put [add your GitHub access token to the dependency](https://docs.readthedocs.io/en/stable/guides/private-python-packages.html) in `requirements.txt` first. 
+1) Build an image named `msf-streamlit`: `docker build -t msf-streamlit .`.
 
 2) Run the `msf-streamlit` image in a container, passing the necessary environment variables: 
     ```

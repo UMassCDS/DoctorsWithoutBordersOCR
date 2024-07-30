@@ -8,7 +8,6 @@ You should also add project tags for each release in Github, see [Managing relea
 
 ## [Unreleased]
 
-## [1.2.0] - 2024-07-30
 ### Added
 - Merged the MSF-OCR-Streamlit repository into this repository
 

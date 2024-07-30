@@ -20,7 +20,6 @@ def configure_secrets():
     username = os.environ["DHIS2_USERNAME"]
     password = os.environ["DHIS2_PASSWORD"]
     server_url = os.environ["DHIS2_SERVER_URL"]
-    os.environ["OPENAI_API_KEY"]
     dhis2.configure_DHIS2_server(username, password, server_url)
 
 
