@@ -69,6 +69,14 @@ def get_org_unit_children(org_unit_id):
 
 @st.cache_data(show_spinner=False)
 def get_results_wrapper(tally_sheet):
+    """_summary_
+
+    Args:
+        tally_sheet (_list_): List of uploaded image file paths.
+
+    Returns:
+        results (_list_): List of results from the OpenAI API.
+    """
     return ocr_functions.get_results(tally_sheet)
 
 @st.cache_data
@@ -394,9 +402,11 @@ if st.session_state['password_correct']:
 
         # Displaying the editable information
         
-        page_options = sorted({num for num in st.session_state.page_nums})
+        page_options = sorted({num for num in st.session_state.page_nums}, key=lambda k: int(k.replace(PAGE_REVIEWED_INDICATOR, "")))
         
-        page_selected = st.selectbox("Page Number", page_options)
+        current_page = next((i for i, num in enumerate(page_options) if not num.endswith(PAGE_REVIEWED_INDICATOR)), 0)
+        
+        page_selected = st.selectbox("Page Number", page_options, index=int(current_page))
         
         # Displaying images so the user can see them
         with st.expander("Show Image"):
