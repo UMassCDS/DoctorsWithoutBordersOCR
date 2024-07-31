@@ -52,7 +52,7 @@ def get_data_sets(data_set_uids):
     :param data_set_uids: List of data set UIDs
     :return: List of data sets
     """
-    return  dhis2.getDataSets(data_set_uids)
+    return dhis2.getDataSets(data_set_uids)
 
 @st.cache_data
 def get_org_unit_children(org_unit_id):
@@ -69,6 +69,7 @@ def get_org_unit_children(org_unit_id):
 
 @st.cache_data(show_spinner=False)
 def get_results_wrapper(tally_sheet):
+    """A wrapper function for caching the get_results function."""
     return ocr_functions.get_results(tally_sheet)
 
 @st.cache_data
@@ -157,9 +158,10 @@ def json_export(kv_pairs):
 
 def correct_field_names(dfs, form):
     """
-    Corrects the text data in tables by replacing with closest match among the hardcoded fieldnames
-    :param Data as dataframes
-    :return Corrected data as dataframes
+    Corrects the text data in tables by replacing with closest match among the hardcoded fieldnames.
+    
+    :param dfs: Data as dataframes
+    :return: Corrected data as dataframes
     """
     dataElement_list,categoryOptionsList = get_DE_COC_List_wrapper(form)
     print(categoryOptionsList, dataElement_list)
@@ -204,13 +206,22 @@ def set_first_row_as_header(df):
     # print(df)
     return df
 
-def save_st_table(dfs):
-    for idx, table in enumerate(dfs):
-        if not dfs[idx].equals(st.session_state.table_dfs[idx]):
-            st.session_state.table_dfs[idx] = dfs[idx]
-    st.rerun() 
-
+def save_st_table(table_dfs):
+    """Saves the tables to the session state if there are any changes and reruns."""
+    for idx, table in enumerate(table_dfs):
+        if not table_dfs[idx].equals(st.session_state.table_dfs[idx]):
+            st.session_state.table_dfs = table_dfs
+            st.rerun()
+            
 def evaluate_cells(table_dfs):
+    """_summary_
+
+    Args:
+        table_dfs (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     for table in table_dfs:
         table_removed_labels = table.loc[1:, 1:]
         for col in table_removed_labels.columns:
@@ -224,10 +235,11 @@ def evaluate_cells(table_dfs):
 
 @st.cache_data
 def parse_table_data_wrapper(result):
+    """A wrapper function for caching the parse_table_data_wrapper function."""
     tablenames, tables =  ocr_functions.parse_table_data(result)
     return tablenames, tables
 
-# Initiation
+# Initialization
 if "initialised" not in st.session_state:
     st.session_state['initialised'] = True
     st.session_state['upload_key'] = 1000
@@ -279,17 +291,17 @@ if st.session_state['password_correct']:
     configure_secrets()
 
     # Uploading file
-    holder = st.empty()
+    upload_holder = st.empty()
     
-    holder.write("### File Upload ###")
-    tally_sheet_images = holder.file_uploader("Please upload tally sheet images.", type=["png", "jpg", "jpeg"],
+    upload_holder.write("### File Upload ###")
+    tally_sheet_images = upload_holder.file_uploader("Please upload tally sheet images.", type=["png", "jpg", "jpeg"],
                                 accept_multiple_files=True,
                                 key=st.session_state['upload_key'])
 
     # Once images are uploaded
     if len(tally_sheet_images) > 0:
         
-        holder.empty()
+        upload_holder.empty()
 
         if st.button("Clear Form", type='primary') and 'upload_key' in st.session_state.keys():
             st.session_state.upload_key += 1
@@ -299,30 +311,12 @@ if st.session_state['password_correct']:
                 del st.session_state['table_names']
             if 'page_nums' in st.session_state:
                 del st.session_state['page_nums']
+            if 'pages_confirmed' in st.session_state:
+                del st.session_state['pages_confirmed']
             st.rerun()
 
-        with st.spinner("Running image recognition..."):
-            results = get_results_wrapper(tally_sheet_images)
-
-        # ***************************************
-        result = results[0]
-        # Initialize from JSON result
-        # dataSet = result.get('dataSet', None)
-        # orgUnit = result.get('Health Structure', None)
-        # start_date = result.get('Start Date', None)
-        # end_date = result.get('End Date', None)
-        dataSet = None
-        orgUnit = None
-        start_date = None
-        end_date = None
-
-        # Initialize org_unit with any recognized text from tally sheet
-        # Change the value when user edits the field
         with st.sidebar:
-            if orgUnit:
-                org_unit = st.text_input("Organisation Unit", value=orgUnit)
-            else:
-                org_unit = st.text_input("Organisation Unit", placeholder="Search organisation unit name")
+            org_unit = st.text_input("Organisation Unit", placeholder="Search organisation unit name")
 
             org_unit_dropdown = None
             org_unit_options = None
@@ -370,14 +364,16 @@ if st.session_state['password_correct']:
                                 st.write("Period Type\: " + period_type)
 
             # Initialize with period values recognized from tally sheet or entered by user
-            if (start_date and end_date):
-                if start_date:
-                    period_start = st.date_input("Period Start Date", format="YYYY-MM-DD", value=start_date, max_value=datetime.today())
-                else:
-                    period_start = st.date_input("Period Start Date", format="YYYY-MM-DD", max_value=datetime.today())
-            else:
-                period_start = st.date_input("Period Start Date", format="YYYY-MM-DD", max_value=datetime.today())
+            period_start = st.date_input("Period Start Date", format="YYYY-MM-DD", max_value=datetime.today())
 
+        
+        
+        with st.spinner("Running image recognition..."):
+            results = get_results_wrapper(tally_sheet_images)
+
+        # ***************************************
+        # Initialize org_unit with any recognized text from tally sheet
+        # Change the value when user edits the field
         
         # Populate streamlit with data recognized from tally sheets
         
@@ -397,6 +393,10 @@ if st.session_state['password_correct']:
             st.session_state.table_dfs = table_dfs
         if 'page_nums' not in st.session_state:
             st.session_state.page_nums = page_nums_to_display
+        if 'data_payload' not in st.session_state:
+            st.session_state.data_payload = None
+        if 'pages_confirmed' not in st.session_state:
+            st.session_state['pages_confirmed'] = False
 
         
         # Displaying the editable information
@@ -418,53 +418,50 @@ if st.session_state['password_correct']:
             st.write(f"{table_name}")
             col1, col2 = st.columns([4, 1])
 
-            edited_dfs = st.session_state.table_dfs
             with col1:
                 # Display tables as editable fields
-                edited_dfs[i] = st.data_editor(df, num_rows="dynamic", key=f"editor_{i}", use_container_width=True)
+                table_dfs[i] = st.data_editor(df, num_rows="dynamic", key=f"editor_{i}", use_container_width=True)
 
             with col2:
                 # Add column functionality
                 # new_col_name = st.text_input(f"New column name", key=f"new_col_{i}")
                 if st.button("Add Column", key=f"add_col_{i}"):
-                    edited_dfs[i][str(int(table_dfs[i].columns[-1]) + 1)] = None
-                    save_st_table(edited_dfs)
+                    table_dfs[i][str(int(table_dfs[i].columns[-1]) + 1)] = None
+                    save_st_table(table_dfs)
     
                 # Delete column functionality
                 if not st.session_state.table_dfs[i].empty:
                     col_to_delete = st.selectbox("Column to delete", st.session_state.table_dfs[i].columns,
                                                 key=f"del_col_{i}")
                     if st.button("Delete Column", key=f"delete_col_{i}"):
-                        edited_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
-                        save_st_table(edited_dfs)
+                        table_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
+                        save_st_table(table_dfs)
 
-        if st.button("Confirm data", type="primary"):            
-            st.session_state.page_nums = [f"{num} {PAGE_REVIEWED_INDICATOR}" if (num == page_selected and not num.endswith(PAGE_REVIEWED_INDICATOR)) 
-                                        else num 
-                                        for num in st.session_state.page_nums]
-            save_st_table(edited_dfs)
-            st.rerun()
+        if data_set_selected_id:
     
-
-        if org_unit_child_id is not None and data_set_selected_id is not None:
-            if period_type:
-                period_ID = get_period()
+            period_ID = get_period()
             # Get the information about the DHIS2 form after all form identifiers have been selected by the user    
             form = getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_child_id)
-
-            # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search
-            if st.button("Correct field names", key="correct_names", type="primary"):    
+            
+            if st.button("Correct to DHIS2 field names", key="correct_names", type="primary"):
+            # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search    
                 if data_set_selected_id:
                     print("Running", data_set_selected_id)
-                    edited_dfs = correct_field_names(st.session_state.table_dfs, form)
+                    edited_dfs = correct_field_names(table_dfs, form)
                     save_st_table(edited_dfs)
                 else:
-                    raise Exception("Select a valid dataset")    
-            if 'data_payload' not in st.session_state:
-                st.session_state.data_payload = None
+                    raise Exception("Select a valid dataset") 
+                
+            if st.button("Confirm data", type="primary"):            
+                st.session_state.page_nums = [f"{num} {PAGE_REVIEWED_INDICATOR}" if (num == page_selected and not num.endswith(PAGE_REVIEWED_INDICATOR)) 
+                                            else num 
+                                            for num in st.session_state.page_nums]
+                st.session_state.pages_confirmed = all(ele.endswith(PAGE_REVIEWED_INDICATOR) for ele in st.session_state.page_nums)
+                save_st_table(table_dfs)
+                st.rerun()
     
             # Generate and display key-value pairs
-            if st.button("Generate key value pairs", type="primary"):
+            if st.button("Generate key value pairs", type="primary", disabled=not st.session_state.pages_confirmed):
                 try:
                     with st.spinner("Key value pair generation in progress, please wait..."):
                         final_dfs = copy.deepcopy(st.session_state.table_dfs)
@@ -483,7 +480,7 @@ if st.session_state['password_correct']:
                 except KeyError as e:
                     raise Exception("Key error - ", e)
 
-            if st.button("Upload to DHIS2", type="primary"):
+            if st.button("Upload to DHIS2", type="primary", disabled=not st.session_state.pages_confirmed):
                 if all(PAGE_REVIEWED_INDICATOR in str(num) for num in st.session_state.page_nums):
                     if st.session_state.data_payload is not None:
                         data_value_set_url = f'{dhis2.DHIS2_SERVER_URL}/api/dataValueSets?dryRun=true'
@@ -511,4 +508,3 @@ if st.session_state['password_correct']:
 
         else:
             st.error("Please finish selecting organisation unit and data set.")
-
