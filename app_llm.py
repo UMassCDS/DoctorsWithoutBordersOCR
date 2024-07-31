@@ -20,6 +20,7 @@ def configure_secrets():
     username = os.environ["DHIS2_USERNAME"]
     password = os.environ["DHIS2_PASSWORD"]
     server_url = os.environ["DHIS2_SERVER_URL"]
+    open_ai = os.environ["OPENAI_API_KEY"]
     dhis2.configure_DHIS2_server(username, password, server_url)
 
 
@@ -52,7 +53,7 @@ def get_data_sets(data_set_uids):
     :param data_set_uids: List of data set UIDs
     :return: List of data sets
     """
-    return dhis2.getDataSets(data_set_uids)
+    return  dhis2.getDataSets(data_set_uids)
 
 @st.cache_data
 def get_org_unit_children(org_unit_id):
@@ -72,9 +73,13 @@ def get_results_wrapper(tally_sheet):
     return ocr_functions.get_results(tally_sheet)
 
 @st.cache_data
-def getCategoryUIDs_wrapper(datasetid):
-    _,_,_,categoryOptionsList, dataElement_list =  dhis2.getCategoryUIDs(datasetid)
-    return categoryOptionsList, dataElement_list
+def get_DE_COC_List_wrapper(form):
+    dataElement_list, categoryOptionsList =  dhis2.get_DE_COC_List(form)
+    return dataElement_list, categoryOptionsList
+
+@st.cache_data
+def getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_dropdown):
+    return dhis2.getFormJson(data_set_selected_id, period_ID, org_unit_dropdown)
 
 def week1_start_ordinal(year):
     """
@@ -151,13 +156,13 @@ def json_export(kv_pairs):
     json_export["dataValues"] = kv_pairs
     return json.dumps(json_export)
 
-def correct_field_names(dfs):
+def correct_field_names(dfs, form):
     """
     Corrects the text data in tables by replacing with closest match among the hardcoded fieldnames
     :param Data as dataframes
     :return Corrected data as dataframes
     """
-    categoryOptionsList, dataElement_list = getCategoryUIDs_wrapper(data_set_selected_id)
+    dataElement_list,categoryOptionsList = get_DE_COC_List_wrapper(form)
     print(categoryOptionsList, dataElement_list)
     
     for table in dfs:
@@ -200,26 +205,28 @@ def set_first_row_as_header(df):
     # print(df)
     return df
 
-def save_st_table(table_dfs):
-    for idx, table in enumerate(table_dfs):
-        if not table_dfs[idx].equals(st.session_state.table_dfs[idx]):
-            st.session_state.table_dfs = table_dfs
-            st.rerun()
-            
+def save_st_table(dfs):
+    for idx, table in enumerate(dfs):
+        if not dfs[idx].equals(st.session_state.table_dfs[idx]):
+            st.session_state.table_dfs[idx] = dfs[idx]
+    st.rerun() 
+
 def evaluate_cells(table_dfs):
     for table in table_dfs:
         table_removed_labels = table.loc[1:, 1:]
         for col in table_removed_labels.columns:
             try:
+                # Contents should be strings in order to be editable later
                 table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
-            except Exception:
+            except:
                 continue
         table.update(table_removed_labels)
     return table_dfs
 
 @st.cache_data
 def parse_table_data_wrapper(result):
-    return ocr_functions.parse_table_data(result)
+    tablenames, tables =  ocr_functions.parse_table_data(result)
+    return tablenames, tables
 
 # Initiation
 if "initialised" not in st.session_state:
@@ -260,7 +267,7 @@ placeholder = st.empty()
 # Prompt the user for a password if they haven't entered the correct one yet
 if not st.session_state['password_correct']:
     with placeholder.container():
-        password = st.text_input("Enter password", type="password")
+        password = st.text_input(f"Enter password", type="password")
         if st.button("Submit Password", key="password_submit_button"):
             if password == CORRECT_PASSWORD:
                 st.session_state['password_correct'] = True
@@ -300,9 +307,6 @@ if st.session_state['password_correct']:
 
         # ***************************************
         result = results[0]
-        
-        # print(results)
-
         # Initialize from JSON result
         # dataSet = result.get('dataSet', None)
         # orgUnit = result.get('Health Structure', None)
@@ -323,8 +327,9 @@ if st.session_state['password_correct']:
 
             org_unit_dropdown = None
             org_unit_options = None
-            data_set_selected_id =None
-
+            org_unit_child_id = None
+            data_set_selected_id = None
+            period_type=None
             # Get all UIDs corresponding to the text field value
             if org_unit:
                 org_unit_options = dhis2_all_UIDs("organisationUnits", [org_unit])
@@ -374,14 +379,16 @@ if st.session_state['password_correct']:
             else:
                 period_start = st.date_input("Period Start Date", format="YYYY-MM-DD", max_value=datetime.today())
 
-
+        
         # Populate streamlit with data recognized from tally sheets
+        
         table_names, table_dfs, page_nums_to_display = [], [], []
         for i, result in enumerate(results):
             names, df = parse_table_data_wrapper(result)
             table_names.extend(names)
             table_dfs.extend(df)
             page_nums_to_display.extend([str(i + 1)] * len(names))
+
         
         table_dfs = evaluate_cells(table_dfs)
 
@@ -392,11 +399,13 @@ if st.session_state['password_correct']:
         if 'page_nums' not in st.session_state:
             st.session_state.page_nums = page_nums_to_display
 
+        
         # Displaying the editable information
+        page_options = sorted({num for num in st.session_state.page_nums}, key=lambda k: int(k.replace(PAGE_REVIEWED_INDICATOR, "")))
         
-        page_options = sorted({num for num in st.session_state.page_nums})
+        current_page = next((i for i, num in enumerate(page_options) if not num.endswith(PAGE_REVIEWED_INDICATOR)), 0)
         
-        page_selected = st.selectbox("Page Number", page_options)
+        page_selected = st.selectbox("Page Number", page_options, index=int(current_page))
         
         # Displaying images so the user can see them
         with st.expander("Show Image"):
@@ -410,88 +419,97 @@ if st.session_state['password_correct']:
             st.write(f"{table_name}")
             col1, col2 = st.columns([4, 1])
 
+            edited_dfs = st.session_state.table_dfs
             with col1:
                 # Display tables as editable fields
-                # print("Table_dfs:")
-                # print(table_dfs)
-                table_dfs[i] = st.data_editor(df, num_rows="dynamic", key=f"editor_{i}", use_container_width=True)
+                edited_dfs[i] = st.data_editor(df, num_rows="dynamic", key=f"editor_{i}", use_container_width=True)
 
             with col2:
                 # Add column functionality
                 # new_col_name = st.text_input(f"New column name", key=f"new_col_{i}")
-                if st.button("Add Column", key=f"add_col_{i}"):
-                    table_dfs[i][str(int(table_dfs[i].columns[-1]) + 1)] = None
-                    save_st_table(table_dfs)
+                if st.button(f"Add Column", key=f"add_col_{i}"):
+                    edited_dfs[i][str(int(table_dfs[i].columns[-1]) + 1)] = None
+                    save_st_table(edited_dfs)
     
                 # Delete column functionality
                 if not st.session_state.table_dfs[i].empty:
-                    col_to_delete = st.selectbox("Column to delete", st.session_state.table_dfs[i].columns,
+                    col_to_delete = st.selectbox(f"Column to delete", st.session_state.table_dfs[i].columns,
                                                 key=f"del_col_{i}")
-                    if st.button("Delete Column", key=f"delete_col_{i}"):
-                        table_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
-                        save_st_table(table_dfs)
+                    if st.button(f"Delete Column", key=f"delete_col_{i}"):
+                        edited_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
+                        save_st_table(edited_dfs)
 
-        # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search
-        # TODO: Currently there's only a small set of hard coded fields, which might look weird to the user, so it's left of for the demo
-        #if st.button(f"Correct field names", key=f"correct_names"):
-        #     table_dfs = correct_field_names(table_dfs)
-        # if st.button("Save changes", type="primary"):    
-        #     # Rerun the code to display any edits made by user
-        #     save_st_table(table_dfs)
-            
         if st.button("Confirm data", type="primary"):            
             st.session_state.page_nums = [f"{num} {PAGE_REVIEWED_INDICATOR}" if (num == page_selected and not num.endswith(PAGE_REVIEWED_INDICATOR)) 
-                                          else num 
-                                          for num in st.session_state.page_nums]
-            save_st_table(table_dfs)
+                                        else num 
+                                        for num in st.session_state.page_nums]
+            save_st_table(edited_dfs)
             st.rerun()
-            # print(st.session_state.page_nums)
-        
-        if 'data_payload' not in st.session_state:
-            st.session_state.data_payload = None
+    
 
-        # Generate and display key-value pairs
-        if st.button("Upload to DHIS2", type="primary"):
-            if data_set_selected_id:
-                if all(PAGE_REVIEWED_INDICATOR in str(num) for num in st.session_state.page_nums):
-                    try: 
-                        with st.spinner("Uploading in progress, please wait..."):
-                            final_dfs = copy.deepcopy(st.session_state.table_dfs)
-                            for id, table in enumerate(final_dfs):
-                                final_dfs[id] = set_first_row_as_header(table)
-                            print(final_dfs)
-        
-                            key_value_pairs = []
-                            for df in final_dfs:
-                                key_value_pairs.extend(doctr_ocr_functions.generate_key_value_pairs(df, data_set_selected_id))
-                            
-                        st.session_state.data_payload = json_export(key_value_pairs)
-                        if st.session_state.data_payload is not None:
-                            data_value_set_url = f'{dhis2.DHIS2_SERVER_URL}/api/dataValueSets?dryRun=true'
-                            # Send the POST request with the data payload
-                            response = requests.post(
-                                data_value_set_url,
-                                auth=(dhis2.DHIS2_USERNAME, dhis2.DHIS2_PASSWORD),
-                                headers={'Content-Type': 'application/json'},
-                                data=st.session_state.data_payload
-                            )
+        if org_unit_child_id is not None and data_set_selected_id is not None:
+            if period_type:
+                period_ID = get_period()
+            # Get the information about the DHIS2 form after all form identifiers have been selected by the user    
+            form = getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_child_id)
 
-                        # # Check the response status
-                        if response.status_code == 200:
-                            print('Response data:')
-                            print(response.json())
-                            st.success("Submitted!")
-                        else:
-                            print(f'Failed to enter data, status code: {response.status_code}')
-                            print('Response data:')
-                            print(response.json())
-                            st.error("Submission failed. Please try again or notify a technician.")
-                    except KeyError:
-                            # TODO: When normalization actually works, we should change this. 
-                            st.success("Submitted!")
-
+            # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search
+            if st.button(f"Correct field names", key=f"correct_names", type="primary"):    
+                if data_set_selected_id:
+                    print("Running", data_set_selected_id)
+                    edited_dfs = correct_field_names(st.session_state.table_dfs, form)
+                    save_st_table(edited_dfs)
                 else:
+                    raise Exception("Select a valid dataset")    
+            if 'data_payload' not in st.session_state:
+                st.session_state.data_payload = None
+    
+            # Generate and display key-value pairs
+            if st.button("Generate key value pairs", type="primary"):
+                try:
+                    with st.spinner("Key value pair generation in progress, please wait..."):
+                        final_dfs = copy.deepcopy(st.session_state.table_dfs)
+                        for id, table in enumerate(final_dfs):
+                            final_dfs[id] = set_first_row_as_header(table)
+                        print(final_dfs)
+
+                        key_value_pairs = []
+                        for df in final_dfs:
+                            key_value_pairs.extend(doctr_ocr_functions.generate_key_value_pairs(df, form))
+                        
+                        st.session_state.data_payload = json_export(key_value_pairs)
+
+                        st.write("### Data payload ###")
+                        st.json(st.session_state.data_payload)
+                except KeyError as e:
+                    raise Exception("Key error - ", e)
+
+            if st.button("Upload to DHIS2", type="primary"):
+                if all(PAGE_REVIEWED_INDICATOR in str(num) for num in st.session_state.page_nums):
+                    if st.session_state.data_payload is not None:
+                        data_value_set_url = f'{dhis2.DHIS2_SERVER_URL}/api/dataValueSets?dryRun=true'
+                        # Send the POST request with the data payload
+                        response = requests.post(
+                            data_value_set_url,
+                            auth=(dhis2.DHIS2_USERNAME, dhis2.DHIS2_PASSWORD),
+                            headers={'Content-Type': 'application/json'},
+                            data=st.session_state.data_payload
+                        )
+                    else:
+                        st.error("Generate key value pairs first")
+                    # Check the response status
+                    if response.status_code == 200:
+                        print('Response data:')
+                        print(response.json())
+                        st.success("Submitted!")
+                    else:
+                        print(f'Failed to enter data, status code: {response.status_code}')
+                        print('Response data:')
+                        print(response.json())
+                        st.error("Submission failed. Please try again or notify a technician.")
+                else: 
                     st.error("Please confirm that all pages are correct.")
-            else:
-                st.error("Please finish selecting organisation unit and data set.")
+
+        else:
+            st.error("Please finish selecting organisation unit and data set.")
 
