@@ -65,8 +65,8 @@ def test_generate_key_value_pairs(test_server_config, requests_mock):
     
     assert len(data_element_pairs) == len(answer)
 
-    # for i in range(len(data_element_pairs)):
-    #     assert data_element_pairs[i]['value'] == answer[i]['value']
+    for i in range(len(data_element_pairs)):
+        assert data_element_pairs[i]['value'] == answer[i]['value']
 
 
 def test_get_tabular_content(datadir):

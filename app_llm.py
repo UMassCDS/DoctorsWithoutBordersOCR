@@ -20,7 +20,6 @@ def configure_secrets():
     username = os.environ["DHIS2_USERNAME"]
     password = os.environ["DHIS2_PASSWORD"]
     server_url = os.environ["DHIS2_SERVER_URL"]
-    open_ai = os.environ["OPENAI_API_KEY"]
     dhis2.configure_DHIS2_server(username, password, server_url)
 
 
@@ -218,7 +217,7 @@ def evaluate_cells(table_dfs):
             try:
                 # Contents should be strings in order to be editable later
                 table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
-            except:
+            except Exception:
                 continue
         table.update(table_removed_labels)
     return table_dfs
@@ -267,7 +266,7 @@ placeholder = st.empty()
 # Prompt the user for a password if they haven't entered the correct one yet
 if not st.session_state['password_correct']:
     with placeholder.container():
-        password = st.text_input(f"Enter password", type="password")
+        password = st.text_input("Enter password", type="password")
         if st.button("Submit Password", key="password_submit_button"):
             if password == CORRECT_PASSWORD:
                 st.session_state['password_correct'] = True
@@ -427,15 +426,15 @@ if st.session_state['password_correct']:
             with col2:
                 # Add column functionality
                 # new_col_name = st.text_input(f"New column name", key=f"new_col_{i}")
-                if st.button(f"Add Column", key=f"add_col_{i}"):
+                if st.button("Add Column", key=f"add_col_{i}"):
                     edited_dfs[i][str(int(table_dfs[i].columns[-1]) + 1)] = None
                     save_st_table(edited_dfs)
     
                 # Delete column functionality
                 if not st.session_state.table_dfs[i].empty:
-                    col_to_delete = st.selectbox(f"Column to delete", st.session_state.table_dfs[i].columns,
+                    col_to_delete = st.selectbox("Column to delete", st.session_state.table_dfs[i].columns,
                                                 key=f"del_col_{i}")
-                    if st.button(f"Delete Column", key=f"delete_col_{i}"):
+                    if st.button("Delete Column", key=f"delete_col_{i}"):
                         edited_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
                         save_st_table(edited_dfs)
 
@@ -454,7 +453,7 @@ if st.session_state['password_correct']:
             form = getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_child_id)
 
             # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search
-            if st.button(f"Correct field names", key=f"correct_names", type="primary"):    
+            if st.button("Correct field names", key="correct_names", type="primary"):    
                 if data_set_selected_id:
                     print("Running", data_set_selected_id)
                     edited_dfs = correct_field_names(st.session_state.table_dfs, form)
