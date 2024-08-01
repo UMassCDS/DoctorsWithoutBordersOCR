@@ -5,12 +5,12 @@ This should be done before you run your program. See https://github.com/openai/o
 import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
+from io import BytesIO
 
 import pandas as pd
 
 from openai import OpenAI
 from PIL import Image, ExifTags
-
 
 def get_results(uploaded_image_paths):
     """
@@ -59,6 +59,20 @@ def parse_table_data(result):
     return table_names, dataframes
 
 
+def rescale_image(img, limit, maxi=True):
+    width, height = img.size
+    if maxi:
+        max_dim = max(width, height)
+    else:
+        max_dim = min(width, height)
+    if max_dim > limit:
+        scale_factor = limit / max_dim
+        new_width = int(width * scale_factor)
+        new_height = int(height * scale_factor)
+        img = img.resize((new_width, new_height))
+    return img
+
+
 def encode_image(image_path):
     """
     Encodes an image file to base64 string.
@@ -70,7 +84,12 @@ def encode_image(image_path):
     :return: Base64 encoded string of the image.
     """
     image_path.seek(0)
-    return base64.b64encode(image_path.read()).decode("utf-8")
+    with Image.open(image_path) as img:
+        img = rescale_image(img, 2048, True)
+        img = rescale_image(img, 768, False)
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 def extract_text_from_image(image_path):
