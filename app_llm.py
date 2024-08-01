@@ -11,8 +11,6 @@ from msfocr.data import dhis2
 from msfocr.doctr import ocr_functions as doctr_ocr_functions
 from msfocr.llm import ocr_functions
 
-PAGE_REVIEWED_INDICATOR = "✓"
-
 def configure_secrets():
     """Checks that necessary environment variables are set for fast failing.
     Configures the DHIS2 server connection.
@@ -74,11 +72,13 @@ def get_results_wrapper(tally_sheet):
 
 @st.cache_data
 def get_DE_COC_List_wrapper(form):
+    """A wrapper function for caching the get_DE_COC_List function."""
     dataElement_list, categoryOptionsList =  dhis2.get_DE_COC_List(form)
     return dataElement_list, categoryOptionsList
 
 @st.cache_data
 def getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_dropdown):
+    """A wrapper function for caching the getFormJson function."""
     return dhis2.getFormJson(data_set_selected_id, period_ID, org_unit_dropdown)
 
 def week1_start_ordinal(year):
@@ -164,7 +164,6 @@ def correct_field_names(dfs, form):
     :return: Corrected data as dataframes
     """
     dataElement_list,categoryOptionsList = get_DE_COC_List_wrapper(form)
-    print(categoryOptionsList, dataElement_list)
     
     for table in dfs:
         for row in range(table.shape[0]):
@@ -202,8 +201,7 @@ def set_first_row_as_header(df):
     """
     df.columns = df.iloc[0]  
     df = df.iloc[1:]  
-    df.reset_index(drop=True, inplace=True)  
-    # print(df)
+    df.reset_index(drop=True, inplace=True)
     return df
 
 def save_st_table(table_dfs):
@@ -214,13 +212,13 @@ def save_st_table(table_dfs):
             st.rerun()
             
 def evaluate_cells(table_dfs):
-    """_summary_
+    """Uses simple_eval to perform math operations on each cell, defaulting to input if failed.
 
     Args:
-        table_dfs (_type_): _description_
+        table_dfs (_List_): List of table data frames
 
     Returns:
-        _type_: _description_
+        _List_: List of table data frames
     """
     for table in table_dfs:
         table_removed_labels = table.loc[1:, 1:]
@@ -239,18 +237,16 @@ def parse_table_data_wrapper(result):
     tablenames, tables =  ocr_functions.parse_table_data(result)
     return tablenames, tables
 
-# Initialization
+
+PAGE_REVIEWED_INDICATOR = "✓"
+
+# Initializing session state variables that only need to be set on startup
 if "initialised" not in st.session_state:
     st.session_state['initialised'] = True
     st.session_state['upload_key'] = 1000
     st.session_state['password_correct'] = False
-
-# Initial Display
-st.set_page_config("Doctors Without Borders Data Entry")
-# st.title("Doctors Without Borders Image Recognition Data Entry")
-st.markdown("<h1 style='text-align: center;'>Doctors Without Borders Image Recognition Data Entry</h1>", unsafe_allow_html=True)
-
-# Hardcoded Periods, probably won't update but can get them through API
+    
+# Hardcoded period types and formatting, probably won't update but can get them through API
 PERIOD_TYPES = {
     "Daily": "{year}{month}{day}",
     "Weekly": "{year}W{week}",
@@ -273,9 +269,17 @@ PERIOD_TYPES = {
 }
 
 CORRECT_PASSWORD = "OCR_Test"
-placeholder = st.empty()
+
+
+
+# *****Page display*****
+
+# Title and browser tab naming
+st.set_page_config("Doctors Without Borders Data Entry")
+st.markdown("<h1 style='text-align: center;'>Doctors Without Borders Image Recognition Data Entry</h1>", unsafe_allow_html=True)
 
 # Prompt the user for a password if they haven't entered the correct one yet
+placeholder = st.empty()
 if not st.session_state['password_correct']:
     with placeholder.container():
         password = st.text_input("Enter password", type="password")
@@ -328,7 +332,6 @@ if st.session_state['password_correct']:
                 org_unit_options = dhis2_all_UIDs("organisationUnits", [org_unit])
                 if org_unit_options == []:
                     st.error("No organization units by this name were found. Please try again.")
-                    org_unit_dropdown = None
                 else:    
                     org_unit_dropdown = st.selectbox(
                         "Organisation Results",
@@ -446,7 +449,6 @@ if st.session_state['password_correct']:
             if st.button("Correct to DHIS2 field names", key="correct_names", type="primary"):
             # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search    
                 if data_set_selected_id:
-                    print("Running", data_set_selected_id)
                     edited_dfs = correct_field_names(table_dfs, form)
                     save_st_table(edited_dfs)
                 else:
@@ -467,7 +469,6 @@ if st.session_state['password_correct']:
                         final_dfs = copy.deepcopy(st.session_state.table_dfs)
                         for id, table in enumerate(final_dfs):
                             final_dfs[id] = set_first_row_as_header(table)
-                        print(final_dfs)
 
                         key_value_pairs = []
                         for df in final_dfs:
@@ -495,13 +496,8 @@ if st.session_state['password_correct']:
                         st.error("Generate key value pairs first")
                     # Check the response status
                     if response.status_code == 200:
-                        print('Response data:')
-                        print(response.json())
                         st.success("Submitted!")
                     else:
-                        print(f'Failed to enter data, status code: {response.status_code}')
-                        print('Response data:')
-                        print(response.json())
                         st.error("Submission failed. Please try again or notify a technician.")
                 else: 
                     st.error("Please confirm that all pages are correct.")

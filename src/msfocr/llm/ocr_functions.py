@@ -10,7 +10,7 @@ from io import BytesIO
 import pandas as pd
 
 from openai import OpenAI
-from PIL import Image, ExifTags
+from PIL import Image, ExifTags, ImageOps
 
 def get_results(uploaded_image_paths):
     """
@@ -60,6 +60,16 @@ def parse_table_data(result):
 
 
 def rescale_image(img, limit, maxi=True):
+    """Rescales an image file to GPT's proportions (Max 2048 x 768).
+
+    Args:
+        img (_Image_): The image file that needs to be rescaled.
+        limit (_int_): The maximum size of the dimension in pixels.
+        maxi (bool, optional): True for resizing the largest dimension, false for smallest. Defaults to True.
+
+    Returns:
+        _Image_: Resized image file.
+    """
     width, height = img.size
     if maxi:
         max_dim = max(width, height)
@@ -85,6 +95,7 @@ def encode_image(image_path):
     """
     image_path.seek(0)
     with Image.open(image_path) as img:
+        img = ImageOps.exif_transpose(img)
         img = rescale_image(img, 2048, True)
         img = rescale_image(img, 768, False)
         buffered = BytesIO()
