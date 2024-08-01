@@ -12,7 +12,7 @@ WORKDIR /app
 
 # Getting git to clone and system dependencies for DocTR
 RUN apt-get update && apt-get install -y \
-    ffmpeg libsm6 libxext6 libhdf5-dev pkg-config \
+    libxext6 libhdf5-dev pkg-config \
     build-essential \
     curl \
     software-properties-common \
