@@ -12,8 +12,32 @@ from msfocr.data import dhis2
 from msfocr.doctr import ocr_functions as doctr_ocr_functions
 from msfocr.llm import ocr_functions
 
-# Wrapper functions
 
+# Hardcoded period types and formatting, probably won't update but can get them through API
+PERIOD_TYPES = {
+    "Daily": "{year}{month}{day}",
+    "Weekly": "{year}W{week}",
+    "WeeklyWednesday": "{year}WedW{week}",
+    "WeeklyThursday": "{year}ThuW{week}",
+    "WeeklySaturday": "{year}SatW{week}",
+    "WeeklySunday": "{year}SunW{week}",
+    "BiWeekly": "{year}Bi{week}",
+    "Monthly": "{year}{month}",
+    "BiMonthly": "{year}{month}B",
+    "Quarterly": "{year}{quarter_number}",
+    "SixMonthly": "{year}{semiyear_number}",
+    "SixMonthlyApril": "{year}April{semiyear_number}",
+    "SixMonthlyNovember": "{year}Nov{semiyear_number}",
+    "Yearly": "{year}",
+    "FinancialApril": "{year}April",
+    "FinancialJuly": "{year}July",
+    "FinancialOct": "{year}Oct",
+    "FinancialNov": "{year}Nov",
+}
+
+PAGE_REVIEWED_INDICATOR = "✓"
+
+# Wrapper functions
 @st.cache_data(show_spinner=False)
 def get_results_wrapper(tally_sheet):
     """A wrapper function for caching the get_results function."""
@@ -243,36 +267,12 @@ def evaluate_cells(table_dfs):
     return table_dfs
 
 
-
-PAGE_REVIEWED_INDICATOR = "✓"
-
 # Initializing session state variables that only need to be set on startup
 if "initialised" not in st.session_state:
     st.session_state['initialised'] = True
     st.session_state['upload_key'] = 1000
     st.session_state['password_correct'] = False
     
-# Hardcoded period types and formatting, probably won't update but can get them through API
-PERIOD_TYPES = {
-    "Daily": "{year}{month}{day}",
-    "Weekly": "{year}W{week}",
-    "WeeklyWednesday": "{year}WedW{week}",
-    "WeeklyThursday": "{year}ThuW{week}",
-    "WeeklySaturday": "{year}SatW{week}",
-    "WeeklySunday": "{year}SunW{week}",
-    "BiWeekly": "{year}Bi{week}",
-    "Monthly": "{year}{month}",
-    "BiMonthly": "{year}{month}B",
-    "Quarterly": "{year}{quarter_number}",
-    "SixMonthly": "{year}{semiyear_number}",
-    "SixMonthlyApril": "{year}April{semiyear_number}",
-    "SixMonthlyNovember": "{year}Nov{semiyear_number}",
-    "Yearly": "{year}",
-    "FinancialApril": "{year}April",
-    "FinancialJuly": "{year}July",
-    "FinancialOct": "{year}Oct",
-    "FinancialNov": "{year}Nov",
-}
 
 # *****Page display*****
 
@@ -282,8 +282,6 @@ st.markdown("<h1 style='text-align: center;'>Doctors Without Borders Image Recog
 
 server_url = os.environ["DHIS2_SERVER_URL"]
 dhis2.configure_DHIS2_server(server_url = server_url)
-
-API_URL = f'{dhis2.DHIS2_SERVER_URL}/api/33/me'
 
 # Initialize session state variables
 if 'authenticated' not in st.session_state:
@@ -298,7 +296,7 @@ if 'auth_failed' not in st.session_state:
 placeholder = st.empty()
 
 def authenticate():
-    response = requests.get(API_URL, auth=HTTPBasicAuth(st.session_state['username'], st.session_state['password']))
+    response = requests.get(f'{dhis2.DHIS2_SERVER_URL}/api/33/me', auth=HTTPBasicAuth(st.session_state['username'], st.session_state['password']))
     if response.status_code == 200:
         st.session_state['authenticated'] = True
         st.session_state['auth_failed'] = False
