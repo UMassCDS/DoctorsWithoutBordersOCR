@@ -1,5 +1,5 @@
 import urllib.parse
-
+import json
 import requests
 
 # Make sure these are set before trying to make requests
@@ -80,8 +80,26 @@ def getFormJson(dataSet_uid, period, orgUnit_uid):
     :param dataset UID, time period, organisation unit UID
     :return json response containing hierarchical information about tabs, tables, non-tabular fields
     """
-    url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}/form.json?pe={period}&ou={orgUnit_uid}'
+    
+    # POST empty data payload to trigger form generation
+    json_export = {}
+    json_export["dataSet"] = dataSet_uid
+    json_export["period"] = period
+    json_export["orgUnit"] = orgUnit_uid
+    json_export["dataValues"] = []
+    data_payload = json.dumps(json_export)
+    posturl = f'{DHIS2_SERVER_URL}/api/dataValueSets?dryRun=true' 
 
+    response = requests.post(
+                        posturl,
+                        auth=(DHIS2_USERNAME, DHIS2_PASSWORD),
+                        headers={'Content-Type': 'application/json'},
+                        data=data_payload
+                    )  
+    response.raise_for_status()
+
+    # Get form now
+    url = f'{DHIS2_SERVER_URL}/api/dataSets/{dataSet_uid}/form.json?pe={period}&ou={orgUnit_uid}'
     data = getResponse(url)
     return data
             
