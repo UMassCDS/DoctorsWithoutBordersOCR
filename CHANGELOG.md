@@ -12,6 +12,7 @@ You should also add project tags for each release in Github, see [Managing relea
 - User authenticates with DHIS2 password rather than hard coded passkey
 - Table headers are corrected based on key-value pairs from DHIS2
 - Payload with key-value pairs for DHIS2 is displayed to the user before uploading
+- Images are resized before being sent to OpenAI 
 
 ### Changed
 - User must confirm each page and key-value pairs before they're allowed to upload, so upload buttons is not initially selectable
