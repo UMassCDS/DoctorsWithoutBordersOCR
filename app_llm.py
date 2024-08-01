@@ -5,7 +5,7 @@ import os
 
 import requests
 import streamlit as st
-from pip._vendor.requests.auth import HTTPBasicAuth
+from requests.auth import HTTPBasicAuth
 from simpleeval import simple_eval
 
 from msfocr.data import dhis2
@@ -66,19 +66,6 @@ def get_org_unit_children(org_unit_id):
     :return: List of child organization units
     """
     return dhis2.getOrgUnitChildren(org_unit_id)
-
-
-
-# Other functions
-
-def configure_secrets():
-    """Checks that necessary environment variables are set for fast failing.
-    Configures the DHIS2 server connection.
-    """
-    username = os.environ["DHIS2_USERNAME"]
-    password = os.environ["DHIS2_PASSWORD"]
-    server_url = os.environ["DHIS2_SERVER_URL"]
-    dhis2.configure_DHIS2_server(username, password, server_url)
 
 
 @st.cache_data
@@ -293,7 +280,8 @@ PERIOD_TYPES = {
 st.set_page_config("Doctors Without Borders Data Entry")
 st.markdown("<h1 style='text-align: center;'>Doctors Without Borders Image Recognition Data Entry</h1>", unsafe_allow_html=True)
 
-configure_secrets()
+server_url = os.environ["DHIS2_SERVER_URL"]
+dhis2.configure_DHIS2_server(server_url = server_url)
 
 API_URL = f'{dhis2.DHIS2_SERVER_URL}/api/33/me'
 
@@ -333,7 +321,7 @@ if st.session_state['auth_failed']:
 if st.session_state['authenticated']:
     placeholder.empty()
     
-    configure_secrets()
+    dhis2.configure_DHIS2_server(username = st.session_state['username'], password=st.session_state['password'])
 
     # File upload layout
     upload_holder = st.empty()
