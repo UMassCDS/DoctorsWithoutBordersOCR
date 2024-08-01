@@ -5,6 +5,7 @@ import os
 
 import requests
 import streamlit as st
+from pip._vendor.requests.auth import HTTPBasicAuth
 from simpleeval import simple_eval
 
 from msfocr.data import dhis2
@@ -286,31 +287,51 @@ PERIOD_TYPES = {
     "FinancialNov": "{year}Nov",
 }
 
-CORRECT_PASSWORD = "OCR_Test"
-
-
-
 # *****Page display*****
 
 # Title and browser tab naming
 st.set_page_config("Doctors Without Borders Data Entry")
 st.markdown("<h1 style='text-align: center;'>Doctors Without Borders Image Recognition Data Entry</h1>", unsafe_allow_html=True)
 
-# Prompt the user for a password if they haven't entered the correct one yet
+configure_secrets()
+
+API_URL = f'{dhis2.DHIS2_SERVER_URL}/api/33/me'
+
+# Initialize session state variables
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+if 'username' not in st.session_state:
+    st.session_state['username'] = ""
+if 'password' not in st.session_state:
+    st.session_state['password'] = ""
+if 'auth_failed' not in st.session_state:
+    st.session_state['auth_failed'] = False
+
 placeholder = st.empty()
-if not st.session_state['password_correct']:
+
+def authenticate():
+    response = requests.get(API_URL, auth=HTTPBasicAuth(st.session_state['username'], st.session_state['password']))
+    if response.status_code == 200:
+        st.session_state['authenticated'] = True
+        st.session_state['auth_failed'] = False
+        st.session_state['user_info'] = response.json()
+    else:
+        st.session_state['auth_failed'] = True
+
+# Prompt the user for username and password if they haven't entered them yet
+if not st.session_state['authenticated']:
     with placeholder.container():
-        password = st.text_input("Enter password", type="password")
-        if st.button("Submit Password", key="password_submit_button"):
-            if password == CORRECT_PASSWORD:
-                st.session_state['password_correct'] = True
-                placeholder.empty()  # Clear the password prompt
-            else:
-                st.error("Incorrect password. Please try again.")
+        st.session_state['username'] = st.text_input("Enter DHIS2 username")
+        st.session_state['password'] = st.text_input("Enter DHIS2 password", type="password")
+        if st.button("Submit", key="auth_submit_button"):
+            authenticate()
 
+# Display an error message if authentication failed
+if st.session_state['auth_failed']:
+    st.error("Incorrect username or password. Please try again.")
 
-
-if st.session_state['password_correct']:
+if st.session_state['authenticated']:
+    placeholder.empty()
     
     configure_secrets()
 
@@ -340,7 +361,6 @@ if st.session_state['password_correct']:
             if 'pages_confirmed' in st.session_state:
                 del st.session_state['pages_confirmed']
             st.rerun()
-            
 
         # Sidebar for header data
         with st.sidebar:
@@ -430,7 +450,6 @@ if st.session_state['password_correct']:
         if 'pages_confirmed' not in st.session_state:
             st.session_state['pages_confirmed'] = False
 
-        
         # Displaying the editable information
         # Used for multipage selection functionality
         page_options = sorted({num for num in st.session_state.page_nums}, key=lambda k: int(k.replace(PAGE_REVIEWED_INDICATOR, "")))
@@ -468,15 +487,13 @@ if st.session_state['password_correct']:
                         table_dfs[i] = table_dfs[i].drop(columns=[col_to_delete])
                         save_st_table(table_dfs)
 
-
         # Following button functionality relies on the data set to be selected, hence the blocker
         if data_set_selected_id:
     
             period_ID = get_period()
             # Get the information about the DHIS2 form after all form identifiers have been selected by the user    
             form = getFormJson_wrapper(data_set_selected_id, period_ID, org_unit_child_id)
-            
-            
+
             # Correct field names button
             if st.button("Correct to DHIS2 field names", key="correct_names", type="primary"):
             # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search    
