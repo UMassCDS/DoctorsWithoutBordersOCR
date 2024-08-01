@@ -5,12 +5,12 @@ This should be done before you run your program. See https://github.com/openai/o
 import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
+from io import BytesIO
 
 import pandas as pd
 
 from openai import OpenAI
-from PIL import Image, ExifTags
-
+from PIL import Image, ExifTags, ImageOps
 
 def get_results(uploaded_image_paths):
     """
@@ -59,6 +59,30 @@ def parse_table_data(result):
     return table_names, dataframes
 
 
+def rescale_image(img, limit, maxi=True):
+    """Rescales an image file to GPT's proportions (Max 2048 x 768).
+
+    Args:
+        img (_Image_): The image file that needs to be rescaled.
+        limit (_int_): The maximum size of the dimension in pixels.
+        maxi (bool, optional): True for resizing the largest dimension, false for smallest. Defaults to True.
+
+    Returns:
+        _Image_: Resized image file.
+    """
+    width, height = img.size
+    if maxi:
+        max_dim = max(width, height)
+    else:
+        max_dim = min(width, height)
+    if max_dim > limit:
+        scale_factor = limit / max_dim
+        new_width = int(width * scale_factor)
+        new_height = int(height * scale_factor)
+        img = img.resize((new_width, new_height))
+    return img
+
+
 def encode_image(image_path):
     """
     Encodes an image file to base64 string.
@@ -70,7 +94,13 @@ def encode_image(image_path):
     :return: Base64 encoded string of the image.
     """
     image_path.seek(0)
-    return base64.b64encode(image_path.read()).decode("utf-8")
+    with Image.open(image_path) as img:
+        img = ImageOps.exif_transpose(img)
+        img = rescale_image(img, 2048, True)
+        img = rescale_image(img, 768, False)
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 def extract_text_from_image(image_path):
@@ -139,21 +169,21 @@ def correct_image_orientation(image_path):
     :param image_path: The path to the image file.
     :return: PIL.Image.Image: The image with corrected orientation.
     """
-    image = Image.open(image_path)
-    orientation = None
-    try:
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
-                break
-        exif = dict(image.getexif().items())
-        if exif.get(orientation) == 3:
-            image = image.rotate(180, expand=True)
-        elif exif.get(orientation) == 6:
-            image = image.rotate(270, expand=True)
-        elif exif.get(orientation) == 8:
-            image = image.rotate(90, expand=True)
-    except (AttributeError, KeyError, IndexError):
-        pass
-    return image
+    with Image.open(image_path) as image: 
+        orientation = None
+        try:
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = dict(image.getexif().items())
+            if exif.get(orientation) == 3:
+                image = image.rotate(180, expand=True)
+            elif exif.get(orientation) == 6:
+                image = image.rotate(270, expand=True)
+            elif exif.get(orientation) == 8:
+                image = image.rotate(90, expand=True)
+        except (AttributeError, KeyError, IndexError):
+            pass
+        return image
 
 
