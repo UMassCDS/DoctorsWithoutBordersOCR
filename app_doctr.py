@@ -12,7 +12,7 @@ import requests
 import streamlit as st
 
 from msfocr.data import dhis2
-from msfocr.data import ocr_functions
+from msfocr.doctr import ocr_functions
 
 def configure_secrets():
     """Checks that necessary environment variables are set for fast failing.
@@ -156,7 +156,12 @@ def get_uploaded_images(tally_sheet):
     :param Files uploaded by user
     :return List of images uploaded by user as docTR DocumentFiles
     """
-    return [DocumentFile.from_images(sheet.read()) for sheet in tally_sheet]
+    res = []
+    for sheet in tally_sheet:
+        sheet.seek(0, 0)
+        image = sheet.read()
+        res.append(DocumentFile.from_images(image))
+    return res
 
 @st.cache_data
 def get_results(uploaded_images):
@@ -292,7 +297,7 @@ if len(tally_sheet) > 0:
         if 'table_dfs' in st.session_state:
             del st.session_state['table_dfs']
         st.rerun()
-        
+
     uploaded_images = get_uploaded_images(tally_sheet)
     results = get_results(uploaded_images)
     
@@ -300,6 +305,7 @@ if len(tally_sheet) > 0:
     # ***************************************
     image = uploaded_images[0]
     result = results[0]
+    print(result)
     # ***************************************
 
     # form_type looks like [dataSet, orgUnit, period=[startDate, endDate]]
