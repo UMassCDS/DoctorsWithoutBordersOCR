@@ -10,9 +10,12 @@ DHIS2_SERVER_URL = None
 # TODO It might be clearer to create a Server object class and have this be the __init__() function
 def configure_DHIS2_server(username=None, password=None, server_url=None):
     global DHIS2_SERVER_URL, DHIS2_USERNAME, DHIS2_PASSWORD
-    DHIS2_USERNAME = username
-    DHIS2_PASSWORD = password
-    DHIS2_SERVER_URL = server_url
+    if username is not None: 
+        DHIS2_USERNAME = username
+    if password is not None: 
+        DHIS2_PASSWORD = password
+    if server_url is not None: 
+        DHIS2_SERVER_URL = server_url
 
 def getAllUIDs(item_type, search_items):
     encoded_search_items = [urllib.parse.quote_plus(item) for item in search_items]
