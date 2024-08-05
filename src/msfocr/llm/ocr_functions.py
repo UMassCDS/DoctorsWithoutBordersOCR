@@ -1,10 +1,6 @@
 """Processing images by working with the Azure OpenAI API.
 Note that the environment variable must be set for this module to work correctly.
-<<<<<<< Updated upstream
 """
-=======
-Re"""
->>>>>>> Stashed changes
 import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
