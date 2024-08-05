@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 You should also add project tags for each release in Github, see [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
 ## [Unreleased]
+### Added
+- Merged the MSF-OCR-Streamlit repository into this repository
+- User authenticates with DHIS2 password rather than hard coded passkey
+- Table headers are corrected based on key-value pairs from DHIS2
+- Payload with key-value pairs for DHIS2 is displayed to the user before uploading
+- Images are resized before being sent to OpenAI 
+
+### Changed
+- User must confirm each page and key-value pairs before they're allowed to upload, so upload buttons is not initially selectable
+
+## [1.1.0] - 2024-07-26
+### Changed
+- Requests to OpenAI are multithreaded to speed up time to get results for multiple images
 
 ## [1.0.0] - 2024-07-19
 ### Added

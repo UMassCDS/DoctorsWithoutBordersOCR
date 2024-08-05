@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "msfocr"
-version = "1.0.0"
+version = "1.1.0"
 description = "The backend to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
@@ -39,6 +39,12 @@ test = [
     "pytest",
     "pytest-datadir",
     "requests_mock",
+    ]
+
+# Dependencies only needed to run the streamlit app go here
+app = [
+    "streamlit",
+    "simpleeval"
     ]
 
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
