@@ -13,14 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class AIHandler:
-    """Process data using AI."""
-
-    MODEL = "gpt-4"
+    MODEL = "gpt-4o"
 
     def __init__(self, openai_key: str) -> None:
         """
         Initialize the class with the OpenAI API key.
-
         Args:
             openai_key: The API key for accessing the OpenAI service.
         """
@@ -33,7 +30,6 @@ class AIHandler:
 
         Args:
             query: Query to send to the API
-
         Returns:
             Response message from the API
         """
@@ -110,7 +106,7 @@ class TestAIHandler(unittest.TestCase):
 
         self.assertIsNone(response)
         mock_create.assert_called_once_with(
-            model="gpt-4", messages=[{"role": "user", "content": "Test query"}]
+            model="gpt-4o", messages=[{"role": "user", "content": "Test query"}]
         )
 
 
