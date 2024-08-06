@@ -503,7 +503,7 @@ if st.session_state['authenticated']:
 
                         key_value_pairs = []
                         for df in final_dfs:
-                            key_value_pairs.extend(post_processing.generate_key_value_pairs(df, form))
+                            key_value_pairs.extend(dhis2.generate_key_value_pairs(df, form))
                         
                         st.session_state.data_payload = json_export(key_value_pairs)
 

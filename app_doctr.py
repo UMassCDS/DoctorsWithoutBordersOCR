@@ -447,7 +447,7 @@ if len(tally_sheet) > 0:
                 print(final_dfs)
                 key_value_pairs = []
                 for df in final_dfs:
-                    key_value_pairs.extend(post_processing.generate_key_value_pairs(df))
+                    key_value_pairs.extend(dhis2.generate_key_value_pairs(df))
                 st.write("Completed")
                 
                 st.session_state.data_payload = json_export(key_value_pairs)
