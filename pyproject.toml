@@ -46,6 +46,8 @@ app = [
 app-doctr = [
     "img2table",
     "python-doctr",
+    "simpleeval",
+    "streamlit",
     "torch",
     "torchvision",
 ]

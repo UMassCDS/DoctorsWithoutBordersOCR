@@ -6,10 +6,9 @@ import os
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
-from simpleeval import simple_eval
 
 from msfocr.data import dhis2
-from msfocr.doctr import ocr_functions as doctr_ocr_functions
+from msfocr.data import post_processing
 from msfocr.llm import ocr_functions
 
 
@@ -110,6 +109,18 @@ def dhis2_all_UIDs(item_type, search_items):
         return dhis2.getAllUIDs(item_type, search_items)
 
 
+# Other functions
+
+def configure_secrets():
+    """Checks that necessary environment variables are set for fast failing.
+    Configures the DHIS2 server connection.
+    """
+    username = os.environ["DHIS2_USERNAME"]
+    password = os.environ["DHIS2_PASSWORD"]
+    server_url = os.environ["DHIS2_SERVER_URL"]
+    dhis2.configure_DHIS2_server(username, password, server_url)
+
+
 def week1_start_ordinal(year):
     """
     Calculates the ordinal date of the start of the first week of the year.
@@ -205,7 +216,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[row,0]
             if text is not None:
                 for name in dataElement_list:
-                    sim = doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_dataElement < sim:
                         max_similarity_dataElement = sim
                         dataElement = name
@@ -218,7 +229,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[0,id]
             if text is not None:
                 for name in categoryOptionsList:
-                    sim =  doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim =  post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_catOpt < sim:
                         max_similarity_catOpt = sim
                         catOpt = name
@@ -244,27 +255,6 @@ def save_st_table(table_dfs):
         if not table_dfs[idx].equals(st.session_state.table_dfs[idx]):
             st.session_state.table_dfs = table_dfs
             st.rerun()
-            
-            
-def evaluate_cells(table_dfs):
-    """Uses simple_eval to perform math operations on each cell, defaulting to input if failed.
-
-    Args:
-        table_dfs (_List_): List of table data frames
-
-    Returns:
-        _List_: List of table data frames
-    """
-    for table in table_dfs:
-        table_removed_labels = table.loc[1:, 1:]
-        for col in table_removed_labels.columns:
-            try:
-                # Contents should be strings in order to be editable later
-                table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
-            except Exception:
-                continue
-        table.update(table_removed_labels)
-    return table_dfs
 
 
 # Initializing session state variables that only need to be set on startup
@@ -422,7 +412,7 @@ if st.session_state['authenticated']:
             table_names.extend(names)
             table_dfs.extend(df)
             page_nums_to_display.extend([str(i + 1)] * len(names))
-        table_dfs = evaluate_cells(table_dfs)
+        table_dfs = post_processing.evaluate_cells(table_dfs)
         
         # Form session state initialization
         if 'table_names' not in st.session_state:
@@ -513,7 +503,7 @@ if st.session_state['authenticated']:
 
                         key_value_pairs = []
                         for df in final_dfs:
-                            key_value_pairs.extend(doctr_ocr_functions.generate_key_value_pairs(df, form))
+                            key_value_pairs.extend(post_processing.generate_key_value_pairs(df, form))
                         
                         st.session_state.data_payload = json_export(key_value_pairs)
 
