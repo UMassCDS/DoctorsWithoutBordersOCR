@@ -68,4 +68,4 @@ def test_evaluate_cells():
         3: ["Column 3", "20", "12"]
     })
     
-    assert post_processing.evaluate_cells([df]) == answer
+    assert post_processing.evaluate_cells([df])[0].equals(answer)
