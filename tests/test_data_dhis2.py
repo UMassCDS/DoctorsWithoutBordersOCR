@@ -1,7 +1,6 @@
 import pandas as pd
 
 from msfocr.data.dhis2 import getAllUIDs, generate_key_value_pairs
-from msfocr.data import post_processing
 
 def test_getAllUIDs(test_server_config, requests_mock):
     requests_mock.get("http://test.com/api/categoryOptions?filter=name:ilike:12-59m", json={'categoryOptions': [{'id': 'tWRttYIzvBn', 'displayName': '12-59m'}]})
