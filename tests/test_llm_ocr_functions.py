@@ -85,7 +85,7 @@ class TestAIHandler(unittest.TestCase):
 
         # Check that the API was called with the correct parameters
         mock_create.assert_called_once_with(
-            model="gpt-4", messages=[{"role": "user", "content": "Test query"}]
+            model="gpt-4o", messages=[{"role": "user", "content": "Test query"}]
         )
 
     @patch('openai.ChatCompletion.create')
