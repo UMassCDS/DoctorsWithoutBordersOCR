@@ -2,12 +2,10 @@ from datetime import date, datetime
 import copy
 import json
 import os
-
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
 from simpleeval import simple_eval
-
 from msfocr.data import dhis2
 from msfocr.doctr import ocr_functions as doctr_ocr_functions
 from msfocr.llm import ocr_functions
@@ -320,6 +318,10 @@ if st.session_state['authenticated']:
     placeholder.empty()
     
     dhis2.configure_DHIS2_server(username = st.session_state['username'], password=st.session_state['password'])
+
+    api_key = os.environ["AZURE_OPENAI_API_KEY"]
+    azure_endpoint = os.environ['AZURE_OPENAI_ENDPOINT']
+    ocr_functions.configure_azure_openai(api_key = api_key, azure_endpoint=azure_endpoint)
 
     # File upload layout
     upload_holder = st.empty()
