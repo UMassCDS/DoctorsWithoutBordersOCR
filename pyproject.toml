@@ -39,6 +39,8 @@ test = [
     "pytest",
     "pytest-datadir",
     "requests_mock",
+    "pytest_mock",
+    "openai"
     ]
 
 # Dependencies only needed to run the streamlit app go here
