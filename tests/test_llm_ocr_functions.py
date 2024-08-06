@@ -2,19 +2,20 @@ import unittest
 from unittest.mock import patch
 import logging
 from typing import Optional
+from requests.models import Response
 
 import openai
-from openai import APIConnectionError, AuthenticationError
+from openai import APIConnectionError, AuthenticationError, APIStatusError
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Process data using AI
+
 class AIHandler:
     """Process data using AI."""
 
-    MODEL = "gpt4o"
+    MODEL = "gpt-4"
 
     def __init__(self, openai_key: str) -> None:
         """
@@ -53,10 +54,11 @@ class AIHandler:
         except AuthenticationError as ex:
             logger.error("Authentication error: %s", ex)
         except APIConnectionError as ex:
-            logger.error("APIConnection error: %s", ex)
+            logger.error("API connection error: %s", ex)
+        except APIStatusError as ex:
+            logger.error("API status error: %s", ex)
 
         return result
-
 
 # Mocking classes for testing
 class MockedChoice:
@@ -87,12 +89,29 @@ class TestAIHandler(unittest.TestCase):
 
         # Check that the API was called with the correct parameters
         mock_create.assert_called_once_with(
-            model="gpt4o", messages=[{"role": "user", "content": "Test query"}]
+            model="gpt-4", messages=[{"role": "user", "content": "Test query"}]
         )
 
+    @patch('openai.ChatCompletion.create')
+    def test_query_api_authentication_error(self, mock_create):
+        # Create a mock response object
+        mock_response = Response()
+        mock_response.status_code = 401  # Unauthorized status code
 
+        # Mock the error
+        mock_create.side_effect = AuthenticationError(
+            message="Invalid API key",
+            response=mock_response,
+            body={}
+        )
 
+        handler = AIHandler(openai_key="fake_api_key")
+        response = handler.query_api("Test query")
 
+        self.assertIsNone(response)
+        mock_create.assert_called_once_with(
+            model="gpt-4", messages=[{"role": "user", "content": "Test query"}]
+        )
 
 
 
