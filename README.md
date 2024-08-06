@@ -21,7 +21,8 @@ Use these steps for setting up a development environment to install and work wit
 2) Activate your virtual environment.
 3) Install the package.
 	  - **Only base package**: If you want to just use the scripts and package features, install the project by running `pip install .` from the root directory.
-    - **Package with Streamlit app**: To also install dependencies for the Streamlit frontend application, run `pip install .[app]`.
+    - **Package with Streamlit app**: To also install dependencies for the Streamlit frontend application using the main LLM OCR, run `pip install .[app]`.
+    - **Package with DocTR app**: To install dependencies for the Streamlit frontend application using the DocTR OCR, run `pip install .[app-doctr]`.
     - **All development dependencies**: If you will be changing the code and running tests, you can install it by running `pip install -e '.[app,test,dev]'`. The `-e/--editable` flag means local changes to the project code will always be available with the package is imported. You wouldn't use this in production, but it's useful for development. *PS*: use `pip install -e '.[app,test,dev]'` with the quote symbols for zshell/zsh (default shell on newer Macs).
 
 For example, if you use the 'venv' Virtualenv module, you would do the following to create an environment named `venv` with Python version 3.10, then activate it and install the package in developer mode:
