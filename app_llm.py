@@ -111,16 +111,6 @@ def dhis2_all_UIDs(item_type, search_items):
 
 # Other functions
 
-def configure_secrets():
-    """Checks that necessary environment variables are set for fast failing.
-    Configures the DHIS2 server connection.
-    """
-    username = os.environ["DHIS2_USERNAME"]
-    password = os.environ["DHIS2_PASSWORD"]
-    server_url = os.environ["DHIS2_SERVER_URL"]
-    dhis2.configure_DHIS2_server(username, password, server_url)
-
-
 def week1_start_ordinal(year):
     """
     Calculates the ordinal date of the start of the first week of the year.

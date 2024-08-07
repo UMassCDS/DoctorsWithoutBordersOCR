@@ -51,16 +51,12 @@ def evaluate_cells(table_dfs):
         _List_: List of table data frames
     """
     for table in table_dfs:
-        print(table)
         table_removed_labels = table.iloc[1:, 1:]
-        print(table_removed_labels)
         for col in table_removed_labels.columns:
             try:
                 # Contents should be strings in order to be editable later
                 table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
             except Exception:
                 continue
-        print(table)
-        print(table_removed_labels)
         table.update(table_removed_labels)
     return table_dfs
