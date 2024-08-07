@@ -3,7 +3,7 @@ from unittest.mock import patch
 from typing import Optional
 from requests.models import Response
 import pandas as pd
-from PIL import Image, ImageOps,ExifTags
+from PIL import Image
 from io import BytesIO
 import base64
 
