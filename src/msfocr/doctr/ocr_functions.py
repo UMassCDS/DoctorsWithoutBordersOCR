@@ -8,7 +8,7 @@ import re
 import Levenshtein
 import numpy as np
 import pandas as pd
-
+from PIL import Image, ExifTags
 
 
 def letter_by_letter_similarity(text1, text2):
@@ -173,7 +173,7 @@ def generate_key_value_pairs(table, form):
             # Column name in tally sheet
             category = columns[col_index]
             cell_value = table_array[row_index][col_index]
-            if cell_value is not None and cell_value!="-" and cell_value!="":
+            if cell_value is not None and cell_value!="-" and cell_value!="" and cell_value!="None":
                 data_element_id = None
                 category_id = None
                 # Search for the string in the "label" field of form information
@@ -197,6 +197,33 @@ def generate_key_value_pairs(table, form):
                     )
 
     return data_element_pairs
+
+def correct_image_orientation(image_path):
+    """
+    Corrects the orientation of an image based on its EXIF data.
+
+    Usage:
+    corrected_image = correct_image_orientation("path/to/image.jpg")
+
+    :param image_path: The path to the image file.
+    :return: PIL.Image.Image: The image with corrected orientation.
+    """
+    with Image.open(image_path) as image: 
+        orientation = None
+        try:
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = dict(image.getexif().items())
+            if exif.get(orientation) == 3:
+                image = image.rotate(180, expand=True)
+            elif exif.get(orientation) == 6:
+                image = image.rotate(270, expand=True)
+            elif exif.get(orientation) == 8:
+                image = image.rotate(90, expand=True)
+        except (AttributeError, KeyError, IndexError):
+            pass
+        return image.copy()
 
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
 # document = DocumentFile.from_images("IMG_20240514_090947.jpg")
