@@ -15,8 +15,6 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
-import streamlit as st
-
 
 # Hardcoded period types and formatting, probably won't update but can get them through API
 PERIOD_TYPES = {
@@ -304,7 +302,7 @@ def clean_up(table_dfs):
             for col in range(table.shape[1]):
                 cell_value = table.iloc[row][col]
                 print(cell_value)
-                if cell_value == None:
+                if cell_value is None or cell_value=="None":
                     table.iloc[row][col] = ""
                 print(table.iloc[row][col])
     print(table_dfs)            
