@@ -2,7 +2,7 @@ from datetime import date, datetime
 import copy
 import json
 import os
-
+import pandas as pd
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
@@ -43,11 +43,6 @@ PERIOD_TYPES = {
 PAGE_REVIEWED_INDICATOR = "✓"
 
 # Wrapper functions
-@st.cache_data(show_spinner=False)
-def get_results_wrapper(tally_sheet):
-    """A wrapper function for caching the get_results function."""
-    return ocr_functions.get_results(tally_sheet)
-
 @st.cache_resource
 def create_ocr():
     """
@@ -396,9 +391,7 @@ if st.session_state['authenticated']:
             if 'page_nums' in st.session_state:
                 del st.session_state['page_nums']
             if 'pages_confirmed' in st.session_state:
-                del st.session_state['pages_confirmed']
-            if 'execute_once' in st.session_state:
-                del st.session_state['execute_once']    
+                del st.session_state['pages_confirmed']    
             st.rerun()
 
         # Sidebar for header data
@@ -489,9 +482,7 @@ if st.session_state['authenticated']:
         if 'data_payload' not in st.session_state:
             st.session_state.data_payload = None
         if 'pages_confirmed' not in st.session_state:
-            st.session_state['pages_confirmed'] = False
-        if 'execute_once' not in st.session_state:
-            st.session_state['execute_once'] = True    
+            st.session_state['pages_confirmed'] = False  
 
         # Displaying the editable information
         # Used for multipage selection functionality
@@ -508,6 +499,7 @@ if st.session_state['authenticated']:
         # Uploading the tables, adding columns for each name
         for i, (df, page_num) in enumerate(zip(st.session_state.table_dfs, st.session_state.page_nums)):
             if page_num != page_selected:
+                table_dfs[i] = pd.DataFrame(df)
                 continue
             int_page_num = int(page_num.replace(PAGE_REVIEWED_INDICATOR, "").strip())
             st.write(f"Table {i + 1}")
@@ -558,8 +550,6 @@ if st.session_state['authenticated']:
                 save_st_table(table_dfs)
                 st.rerun()
                 
-            st.write(st.session_state.table_dfs)
-            st.write(table_dfs)
             # Generate and display key-value pairs button
             if st.button("Generate key value pairs", type="primary", disabled=not st.session_state.pages_confirmed):
                 try:
