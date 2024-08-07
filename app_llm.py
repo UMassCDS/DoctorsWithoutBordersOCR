@@ -312,6 +312,10 @@ if st.session_state['authenticated']:
     # Once images are uploaded
     if len(tally_sheet_images) > 0:
         
+        # First load session state
+        if 'first_load' not in st.session_state:
+            st.session_state['first_load'] = True
+        
         # Removing the data upload file button to force users to clear form
         upload_holder.empty()
 
@@ -326,6 +330,8 @@ if st.session_state['authenticated']:
                 del st.session_state['page_nums']
             if 'pages_confirmed' in st.session_state:
                 del st.session_state['pages_confirmed']
+            if 'first_load' in st.session_state:
+                del st.session_state['first_load']
             st.rerun()
 
         # Sidebar for header data
@@ -396,13 +402,17 @@ if st.session_state['authenticated']:
         
         # Populate streamlit with data recognized from tally sheets
         
-        table_names, table_dfs, page_nums_to_display = [], [], []
-        for i, result in enumerate(results):
-            names, df = parse_table_data_wrapper(result)
-            table_names.extend(names)
-            table_dfs.extend(df)
-            page_nums_to_display.extend([str(i + 1)] * len(names))
-        table_dfs = post_processing.evaluate_cells(table_dfs)
+        if st.session_state['first_load']:
+            table_names, table_dfs, page_nums_to_display = [], [], []
+            for i, result in enumerate(results):
+                names, df = parse_table_data_wrapper(result)
+                table_names.extend(names)
+                table_dfs.extend(df)
+                page_nums_to_display.extend([str(i + 1)] * len(names))
+            table_dfs = post_processing.evaluate_cells(table_dfs)
+            st.session_state['first_load'] = False
+        else:
+            table_dfs = st.session_state['table_dfs'].copy()
         
         # Form session state initialization
         if 'table_names' not in st.session_state:
@@ -465,6 +475,7 @@ if st.session_state['authenticated']:
             # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search    
                 if data_set_selected_id:
                     edited_dfs = correct_field_names(table_dfs, form)
+                    print(edited_dfs)
                     save_st_table(edited_dfs)
                 else:
                     raise Exception("Select a valid dataset") 
