@@ -169,21 +169,23 @@ def correct_image_orientation(image_path):
     :param image_path: The path to the image file.
     :return: PIL.Image.Image: The image with corrected orientation.
     """
-    with Image.open(image_path) as image: 
-        orientation = None
+    with Image.open(image_path) as image:
         try:
-            for orientation in ExifTags.TAGS.keys():
-                if ExifTags.TAGS[orientation] == 'Orientation':
-                    break
-            exif = dict(image.getexif().items())
-            if exif.get(orientation) == 3:
-                image = image.rotate(180, expand=True)
-            elif exif.get(orientation) == 6:
-                image = image.rotate(270, expand=True)
-            elif exif.get(orientation) == 8:
-                image = image.rotate(90, expand=True)
-        except (AttributeError, KeyError, IndexError):
-            pass
-        return image
+            Image.open(image_path)
+            exif = image._getexif()
+            if exif is not None:
+                orientation_key = next(
+                    key for key, value in ExifTags.TAGS.items() if value == 'Orientation'
+                )
+                orientation = exif.get(orientation_key)
+                if orientation == 3:
+                    image = image.rotate(180, expand=True)
+                elif orientation == 6:
+                    image = image.rotate(270, expand=True)
+                elif orientation == 8:
+                    image = image.rotate(90, expand=True)
+        except (AttributeError, KeyError, IndexError, StopIteration) as e:
+            print(f"Error correcting image orientation: {e}")
+        return image.copy()
 
 

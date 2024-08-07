@@ -39,7 +39,6 @@ test = [
     "pytest",
     "pytest-datadir",
     "requests_mock",
-    "pytest_mock",
     "openai"
     ]
 
