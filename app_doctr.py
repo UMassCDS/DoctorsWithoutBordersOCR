@@ -12,6 +12,7 @@ import requests
 import streamlit as st
 
 from msfocr.data import dhis2
+from msfocr.data import post_processing
 from msfocr.doctr import ocr_functions
 
 def configure_secrets():
@@ -116,7 +117,7 @@ def correct_field_names(dfs):
             text = table.iloc[row,0]
             if text is not None:
                 for name in dataElement_list:
-                    sim = ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_dataElement < sim:
                         max_similarity_dataElement = sim
                         dataElement = name
@@ -129,7 +130,7 @@ def correct_field_names(dfs):
             text = table.iloc[0,id]
             if text is not None:
                 for name in categoryOptionsList:
-                    sim = ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_catOpt < sim:
                         max_similarity_catOpt = sim
                         catOpt = name
@@ -452,7 +453,7 @@ if len(tally_sheet) > 0:
                 print(final_dfs)
                 key_value_pairs = []
                 for df in final_dfs:
-                    key_value_pairs.extend(ocr_functions.generate_key_value_pairs(df))
+                    key_value_pairs.extend(dhis2.generate_key_value_pairs(df))
                 st.write("Completed")
                 
                 st.session_state.data_payload = json_export(key_value_pairs)
