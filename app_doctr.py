@@ -50,7 +50,7 @@ def create_ocr():
     doctr_ocr = DocTR(detect_language=False)
     return ocr_model, doctr_ocr
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_uploaded_images(tally_sheet):
     """
     List of images uploaded by user as docTR DocumentFiles
@@ -64,7 +64,7 @@ def get_uploaded_images(tally_sheet):
         res.append(DocumentFile.from_images(image))
     return res
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def get_results(uploaded_images):
     return [doctr_ocr_functions.get_word_level_content(ocr_model, doc) for doc in uploaded_images]
 
@@ -297,15 +297,11 @@ def clean_up(table_dfs):
         _List_: List of table data frames
     """
     for table in table_dfs:
-        print(table)
         for row in range(table.shape[0]):
             for col in range(table.shape[1]):
                 cell_value = table.iloc[row][col]
-                print(cell_value)
                 if cell_value is None or cell_value=="None":
-                    table.iloc[row][col] = ""
-                print(table.iloc[row][col])
-    print(table_dfs)            
+                    table.iloc[row][col] = ""            
     return table_dfs
 
 # Initializing session state variables that only need to be set on startup
@@ -455,8 +451,9 @@ if st.session_state['authenticated']:
         # ***************************************
         
         # Populate streamlit with data recognized from tally sheets
-        uploaded_images = get_uploaded_images(tally_sheet_images)
-        results = get_results(uploaded_images)
+        with st.spinner("Running image recognition..."):
+            uploaded_images = get_uploaded_images(tally_sheet_images)
+            results = get_results(uploaded_images)
 
         # Spinner for data upload. If it's going to be on screen for long, make it bespoke    
         table_dfs, page_nums_to_display = [], []

@@ -114,7 +114,6 @@ def get_tabular_content(model, image, confidence_dict=None):
 
     return table_df, confidence_df
 
-
 def get_sheet_type(res):
     """
     Finds the type of the tally sheet (dataSet, orgUnit, period) from the result of OCR model, where
@@ -208,22 +207,23 @@ def correct_image_orientation(image_path):
     :param image_path: The path to the image file.
     :return: PIL.Image.Image: The image with corrected orientation.
     """
-    with Image.open(image_path) as image: 
-        orientation = None
-        try:
-            for orientation in ExifTags.TAGS.keys():
-                if ExifTags.TAGS[orientation] == 'Orientation':
-                    break
-            exif = dict(image.getexif().items())
-            if exif.get(orientation) == 3:
-                image = image.rotate(180, expand=True)
-            elif exif.get(orientation) == 6:
-                image = image.rotate(270, expand=True)
-            elif exif.get(orientation) == 8:
-                image = image.rotate(90, expand=True)
-        except (AttributeError, KeyError, IndexError):
-            pass
-        return image.copy()
+    with Image.open(image_path) as image:
+        image.load()
+    orientation = None
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = dict(image.getexif().items())
+        if exif.get(orientation) == 3:
+            image = image.rotate(180, expand=True)
+        elif exif.get(orientation) == 6:
+            image = image.rotate(270, expand=True)
+        elif exif.get(orientation) == 8:
+            image = image.rotate(90, expand=True)
+    except (AttributeError, KeyError, IndexError):
+        pass
+    return image
 
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
 # document = DocumentFile.from_images("IMG_20240514_090947.jpg")
