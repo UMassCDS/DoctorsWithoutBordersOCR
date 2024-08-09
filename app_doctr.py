@@ -2,7 +2,6 @@ from datetime import date, datetime
 import copy
 import json
 import os
-import pandas as pd
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
@@ -10,9 +9,6 @@ from simpleeval import simple_eval
 
 from msfocr.data import dhis2
 from msfocr.doctr import ocr_functions as doctr_ocr_functions
-
-from doctr.io import DocumentFile
-from doctr.models import ocr_predictor
 from img2table.document import Image
 from img2table.ocr import DocTR
 
