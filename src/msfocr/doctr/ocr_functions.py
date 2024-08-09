@@ -74,7 +74,7 @@ def get_confidence_values(res):
     return confidence_dict
 
 
-def get_tabular_content(model, image, confidence_dict=None):
+def get_tabular_content_with_confidence(model, image, confidence_dict=None):
     """
     Runs the input image in the OCR model. Detects all tables and content within tables and stores results as
     a list of pandas dataFrames (table_df). Calculates confidence values for all detected values in table_df
@@ -113,6 +113,25 @@ def get_tabular_content(model, image, confidence_dict=None):
                         confidence_df[idx].iloc[row, col] = confidence / count
 
     return table_df, confidence_df
+
+def get_tabular_content(model, image):
+    """
+    Runs the input image in the OCR model. Detects all tables and content within tables and stores results as
+    a list of pandas dataFrames (table_df). 
+    :param model: OCR model
+    :param image: Image to be tested (Image object from img2table package)
+    :return: Dataframe table_df 
+    """
+    extracted_tables = image.extract_tables(ocr=model,
+                                            implicit_rows=False,
+                                            borderless_tables=False,
+                                            min_confidence=50)
+
+    table_df = []
+    for _, table in enumerate(extracted_tables):
+        table_df.append(table.df)
+
+    return table_df
 
 def get_sheet_type(res):
     """

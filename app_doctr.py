@@ -44,33 +44,14 @@ PAGE_REVIEWED_INDICATOR = "✓"
 @st.cache_resource
 def create_ocr():
     """
-    Load docTR ocr model and img2table docTR model  
+    Load img2table docTR model  
     """
-    ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
     doctr_ocr = DocTR(detect_language=False)
-    return ocr_model, doctr_ocr
+    return doctr_ocr
 
 @st.cache_data(show_spinner=False)
-def get_uploaded_images(tally_sheet):
-    """
-    List of images uploaded by user as docTR DocumentFiles
-    :param Files uploaded by user
-    :return List of images uploaded by user as docTR DocumentFiles
-    """
-    res = []
-    for sheet in tally_sheet:
-        sheet.seek(0, 0)
-        image = sheet.read()
-        res.append(DocumentFile.from_images(image))
-    return res
-
-@st.cache_data(show_spinner=False)
-def get_results(uploaded_images):
-    return [doctr_ocr_functions.get_word_level_content(ocr_model, doc) for doc in uploaded_images]
-
-@st.cache_data
-def get_tabular_content_wrapper(_doctr_ocr, img, confidence_lookup_dict):
-    return doctr_ocr_functions.get_tabular_content(_doctr_ocr, img, confidence_lookup_dict)
+def get_tabular_content_wrapper(_doctr_ocr, img):
+    return doctr_ocr_functions.get_tabular_content(_doctr_ocr, img)
 
 @st.cache_data
 def get_DE_COC_List_wrapper(form):
@@ -288,7 +269,7 @@ def evaluate_cells(table_dfs):
     return table_dfs
 
 def clean_up(table_dfs):
-    """Uses simple_eval to perform math operations on each cell, defaulting to input if failed.
+    """Cleans up values in table that are returned as the string "None" by OCR model into empty string "" 
 
     Args:
         table_dfs (_List_): List of table data frames
@@ -367,7 +348,7 @@ if st.session_state['authenticated']:
                                 key=st.session_state['upload_key'])
 
     # OCR Model
-    ocr_model, doctr_ocr = create_ocr()
+    doctr_ocr = create_ocr()
 
     # Once images are uploaded
     if len(tally_sheet_images) > 0:
@@ -451,22 +432,17 @@ if st.session_state['authenticated']:
         # ***************************************
         
         # Populate streamlit with data recognized from tally sheets
-        with st.spinner("Running image recognition..."):
-            uploaded_images = get_uploaded_images(tally_sheet_images)
-            results = get_results(uploaded_images)
-
+        
         # Spinner for data upload. If it's going to be on screen for long, make it bespoke    
-        table_dfs, page_nums_to_display = [], []
-        for i, sheet in enumerate(tally_sheet_images):
-            image = uploaded_images[i]
-            result = results[i]
-            confidence_lookup_dict = doctr_ocr_functions.get_confidence_values(result)
-            img = Image(src=sheet)
-            table_df, confidence_df = get_tabular_content_wrapper(doctr_ocr, img, confidence_lookup_dict)
-            table_dfs.extend(table_df)
-            page_nums_to_display.extend([str(i + 1)] * len(table_df))
-        table_dfs = clean_up(table_dfs)
-        table_dfs = evaluate_cells(table_dfs)
+        with st.spinner("Running image recognition..."):
+            table_dfs, page_nums_to_display = [], []
+            for i, sheet in enumerate(tally_sheet_images):
+                img = Image(src=sheet)
+                table_df = get_tabular_content_wrapper(doctr_ocr, img)
+                table_dfs.extend(table_df)
+                page_nums_to_display.extend([str(i + 1)] * len(table_df))
+            table_dfs = clean_up(table_dfs)
+            table_dfs = evaluate_cells(table_dfs)
 
        
         # Form session state initialization
