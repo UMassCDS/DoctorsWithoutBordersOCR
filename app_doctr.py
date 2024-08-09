@@ -353,6 +353,10 @@ if st.session_state['authenticated']:
     # Once images are uploaded
     if len(tally_sheet_images) > 0:
         
+        # First load session state
+        if 'first_load' not in st.session_state:
+            st.session_state['first_load'] = True
+        
         # Removing the data upload file button to force users to clear form
         upload_holder.empty()
 
@@ -366,7 +370,9 @@ if st.session_state['authenticated']:
             if 'page_nums' in st.session_state:
                 del st.session_state['page_nums']
             if 'pages_confirmed' in st.session_state:
-                del st.session_state['pages_confirmed']    
+                del st.session_state['pages_confirmed'] 
+            if 'first_load' in st.session_state:
+                del st.session_state['first_load']       
             st.rerun()
 
         # Sidebar for header data
@@ -435,14 +441,17 @@ if st.session_state['authenticated']:
         
         # Spinner for data upload. If it's going to be on screen for long, make it bespoke    
         with st.spinner("Running image recognition..."):
-            table_dfs, page_nums_to_display = [], []
-            for i, sheet in enumerate(tally_sheet_images):
-                img = Image(src=sheet)
-                table_df = get_tabular_content_wrapper(doctr_ocr, img)
-                table_dfs.extend(table_df)
-                page_nums_to_display.extend([str(i + 1)] * len(table_df))
-            table_dfs = clean_up(table_dfs)
-            table_dfs = evaluate_cells(table_dfs)
+            if st.session_state['first_load']:
+                table_dfs, page_nums_to_display = [], []
+                for i, sheet in enumerate(tally_sheet_images):
+                    img = Image(src=sheet)
+                    table_df = get_tabular_content_wrapper(doctr_ocr, img)
+                    table_dfs.extend(table_df)
+                    page_nums_to_display.extend([str(i + 1)] * len(table_df))
+                table_dfs = clean_up(table_dfs)
+                table_dfs = evaluate_cells(table_dfs)
+            else:
+                table_dfs = st.session_state['table_dfs'].copy()    
 
        
         # Form session state initialization
@@ -470,7 +479,6 @@ if st.session_state['authenticated']:
         # Uploading the tables, adding columns for each name
         for i, (df, page_num) in enumerate(zip(st.session_state.table_dfs, st.session_state.page_nums)):
             if page_num != page_selected:
-                table_dfs[i] = pd.DataFrame(df)
                 continue
             int_page_num = int(page_num.replace(PAGE_REVIEWED_INDICATOR, "").strip())
             st.write(f"Table {i + 1}")
