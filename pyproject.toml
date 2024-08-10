@@ -65,7 +65,8 @@ dev = [
     "matplotlib",
     "notebook",
     "seaborn",
-    "sphinx",
+    "anthropic",
+    "Pillow", 
 ]
 
 # If your project contains scripts you'd like to be available command line, you can define them here.
