@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 You should also add project tags for each release in Github, see [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
 ## [Unreleased]
+
+[2.0.0] - 2024-08-13
 ### Added
 - Merged the MSF-OCR-Streamlit repository into this repository
 - User authenticates with DHIS2 password rather than hard coded passkey
@@ -18,6 +20,9 @@ LLM version of app into docTR version.
 
 ### Changed
 - User must confirm each page and key-value pairs before they're allowed to upload, so upload buttons is not initially selectable
+
+### Fixed
+- Bug where a user's changes aren't saved every other time or when confirming in the Streamlit app
 
 ## [1.1.0] - 2024-07-26
 ### Changed
