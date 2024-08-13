@@ -1,19 +1,27 @@
-"""Processing images by working with the OpenAI API. 
-Note that the OPENAI_API_KEY environment variable must be set for this module to work correctly. 
-This should be done before you run your program. See https://github.com/openai/openai-python for details
-""" 
+"""Processing images by working with the Azure OpenAI API.
+Note that the environment variable must be set for this module to work correctly.
+"""
 import base64
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
-from io import BytesIO
-
 import pandas as pd
-
-from openai import OpenAI
+from openai import AzureOpenAI
+from io import BytesIO
 from PIL import Image, ExifTags, ImageOps
 
+AZURE_OPENAI_API_KEY = None
+AZURE_OPENAI_ENDPOINT = None
+
+def configure_azure_openai(api_key = None, azure_endpoint=None):
+    global AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT
+    if api_key is not None:
+        AZURE_OPENAI_API_KEY = api_key
+    if azure_endpoint is not None:
+        AZURE_OPENAI_ENDPOINT = azure_endpoint
+
+
 def get_results(uploaded_image_paths):
-    """
+    """.
     Processes uploaded image paths using the OpenAI API and returns the results.
 
     Usage:
@@ -105,7 +113,7 @@ def encode_image(image_path):
 
 def extract_text_from_image(image_path):
     """
-    Extracts text and table data from an image using OpenAI's GPT-4 vision model.
+    Extracts text and table data from an image using OpenAI's GPT-4 omni model.
 
     Usage:
     result = extract_text_from_image("path/to/image.jpg")
@@ -113,7 +121,11 @@ def extract_text_from_image(image_path):
     :param image_path: Path to the image file.
     :return: JSON object containing extracted text and table data.
     """
-    client = OpenAI()
+    client = AzureOpenAI(
+        api_key=AZURE_OPENAI_API_KEY,
+        api_version="2024-05-01-preview",
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    )
     MODEL = "gpt-4o"
     base64_image = encode_image(image_path)
     response = client.chat.completions.create(
