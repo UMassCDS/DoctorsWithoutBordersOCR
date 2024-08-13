@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "msfocr"
-version = "1.1.0"
+version = "2.0.0"
 description = "The backend to perform OCR on Doctors without Borders tally sheets."
 readme = "README.md"
 
@@ -22,15 +22,10 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "img2table",
     "numpy",
-    "openai",
     "pandas",
-    "python-doctr",
     "python-Levenshtein",
-    "requests",
-    "torch",
-    "torchvision",
+    "requests"
 ]
 
 [project.optional-dependencies]
@@ -39,13 +34,24 @@ test = [
     "pytest",
     "pytest-datadir",
     "requests_mock",
+    "openai"
     ]
 
 # Dependencies only needed to run the streamlit app go here
 app = [
+    "openai",
     "streamlit",
     "simpleeval"
     ]
+
+app-doctr = [
+    "img2table",
+    "python-doctr",
+    "simpleeval",
+    "streamlit",
+    "torch",
+    "torchvision",
+]
 
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
 dev = [

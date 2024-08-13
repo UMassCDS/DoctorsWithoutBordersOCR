@@ -5,9 +5,9 @@ import os
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
-from simpleeval import simple_eval
+
 from msfocr.data import dhis2
-from msfocr.doctr import ocr_functions as doctr_ocr_functions
+from msfocr.data import post_processing
 from msfocr.llm import ocr_functions
 
 
@@ -108,6 +108,8 @@ def dhis2_all_UIDs(item_type, search_items):
         return dhis2.getAllUIDs(item_type, search_items)
 
 
+# Other functions
+
 def week1_start_ordinal(year):
     """
     Calculates the ordinal date of the start of the first week of the year.
@@ -203,7 +205,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[row,0]
             if text is not None:
                 for name in dataElement_list:
-                    sim = doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_dataElement < sim:
                         max_similarity_dataElement = sim
                         dataElement = name
@@ -216,7 +218,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[0,id]
             if text is not None:
                 for name in categoryOptionsList:
-                    sim =  doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim =  post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_catOpt < sim:
                         max_similarity_catOpt = sim
                         catOpt = name
@@ -242,27 +244,6 @@ def save_st_table(table_dfs):
         if not table_dfs[idx].equals(st.session_state.table_dfs[idx]):
             st.session_state.table_dfs = table_dfs
             st.rerun()
-            
-            
-def evaluate_cells(table_dfs):
-    """Uses simple_eval to perform math operations on each cell, defaulting to input if failed.
-
-    Args:
-        table_dfs (_List_): List of table data frames
-
-    Returns:
-        _List_: List of table data frames
-    """
-    for table in table_dfs:
-        table_removed_labels = table.loc[1:, 1:]
-        for col in table_removed_labels.columns:
-            try:
-                # Contents should be strings in order to be editable later
-                table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
-            except Exception:
-                continue
-        table.update(table_removed_labels)
-    return table_dfs
 
 
 # Initializing session state variables that only need to be set on startup
@@ -334,6 +315,10 @@ if st.session_state['authenticated']:
     # Once images are uploaded
     if len(tally_sheet_images) > 0:
         
+        # First load session state
+        if 'first_load' not in st.session_state:
+            st.session_state['first_load'] = True
+        
         # Removing the data upload file button to force users to clear form
         upload_holder.empty()
 
@@ -348,6 +333,8 @@ if st.session_state['authenticated']:
                 del st.session_state['page_nums']
             if 'pages_confirmed' in st.session_state:
                 del st.session_state['pages_confirmed']
+            if 'first_load' in st.session_state:
+                del st.session_state['first_load']
             st.rerun()
 
         # Sidebar for header data
@@ -418,13 +405,17 @@ if st.session_state['authenticated']:
         
         # Populate streamlit with data recognized from tally sheets
         
-        table_names, table_dfs, page_nums_to_display = [], [], []
-        for i, result in enumerate(results):
-            names, df = parse_table_data_wrapper(result)
-            table_names.extend(names)
-            table_dfs.extend(df)
-            page_nums_to_display.extend([str(i + 1)] * len(names))
-        table_dfs = evaluate_cells(table_dfs)
+        if st.session_state['first_load']:
+            table_names, table_dfs, page_nums_to_display = [], [], []
+            for i, result in enumerate(results):
+                names, df = parse_table_data_wrapper(result)
+                table_names.extend(names)
+                table_dfs.extend(df)
+                page_nums_to_display.extend([str(i + 1)] * len(names))
+            table_dfs = post_processing.evaluate_cells(table_dfs)
+            st.session_state['first_load'] = False
+        else:
+            table_dfs = st.session_state['table_dfs'].copy()
         
         # Form session state initialization
         if 'table_names' not in st.session_state:
@@ -515,7 +506,7 @@ if st.session_state['authenticated']:
 
                         key_value_pairs = []
                         for df in final_dfs:
-                            key_value_pairs.extend(doctr_ocr_functions.generate_key_value_pairs(df, form))
+                            key_value_pairs.extend(dhis2.generate_key_value_pairs(df, form))
                         
                         st.session_state.data_payload = json_export(key_value_pairs)
 

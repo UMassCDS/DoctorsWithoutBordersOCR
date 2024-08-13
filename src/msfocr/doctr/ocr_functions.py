@@ -1,52 +1,9 @@
-from datetime import datetime
 import re
-
-# from doctr.io import DocumentFile
-# from doctr.models import ocr_predictor
-# from img2table.document import Image
-# from img2table.ocr import DocTR
-import Levenshtein
 import numpy as np
 import pandas as pd
+from PIL import Image, ExifTags
 
-
-
-def letter_by_letter_similarity(text1, text2):
-    """
-    Checks the letter by letter similarity between two strings
-    :param text1: first text
-    :param text2: second text
-    :return: returns an integer between 0-1, 0 indicates no similarity, 1 indicates identical strings
-    """
-    # Calculate Levenshtein distance
-    distance = Levenshtein.distance(text1, text2)
-
-    # Calculate maximum possible length
-    max_len = max(len(text1), len(text2))
-
-    # Convert distance to similarity
-    similarity = 1 - (distance / max_len)
-
-    return similarity
-
-
-def get_yyyy_mm_dd(text):
-    """
-    Checks if the input text is a date by comparing it with various known formats and returns date in unified YYYY-MM-DD format.
-    :param text: String
-    :return: Date in YYYY-MM-DD format or None
-    """
-    formats = ["%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y", "%d/%m/%Y", "%B %d, %Y", "%d %B %Y", "%Y/%m/%d"]
-
-    for fmt in formats:
-        try:
-            date_obj = datetime.strptime(text, fmt)
-            return date_obj.strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-
-    return None  # Return None if text is not a valid date in any format
-
+from msfocr.data import post_processing
 
 def get_word_level_content(model, doc):
     """
@@ -74,7 +31,7 @@ def get_confidence_values(res):
     return confidence_dict
 
 
-def get_tabular_content(model, image, confidence_dict=None):
+def get_tabular_content_with_confidence(model, image, confidence_dict=None):
     """
     Runs the input image in the OCR model. Detects all tables and content within tables and stores results as
     a list of pandas dataFrames (table_df). Calculates confidence values for all detected values in table_df
@@ -114,6 +71,24 @@ def get_tabular_content(model, image, confidence_dict=None):
 
     return table_df, confidence_df
 
+def get_tabular_content(model, image):
+    """
+    Runs the input image in the OCR model. Detects all tables and content within tables and stores results as
+    a list of pandas dataFrames (table_df). 
+    :param model: OCR model
+    :param image: Image to be tested (Image object from img2table package)
+    :return: Dataframe table_df 
+    """
+    extracted_tables = image.extract_tables(ocr=model,
+                                            implicit_rows=False,
+                                            borderless_tables=False,
+                                            min_confidence=50)
+
+    table_df = []
+    for _, table in enumerate(extracted_tables):
+        table_df.append(table.df)
+
+    return table_df
 
 def get_sheet_type(res):
     """
@@ -137,16 +112,16 @@ def get_sheet_type(res):
             for line in block.lines:
                 text = " ".join(word.value for word in line.words)
                 for name in dataSet_list:
-                    sim = letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_dataSet < sim:
                         max_similarity_dataSet = sim
                         dataSet = name
                 for name in orgUnit_list:
-                    sim = letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_orgUnit < sim:
                         max_similarity_orgUnit = sim
                         orgUnit = name
-                date = get_yyyy_mm_dd(text)
+                date = post_processing.get_yyyy_mm_dd(text)
                 if date is not None:
                     period.append(date)
     return [dataSet, orgUnit, sorted(period)]
@@ -173,7 +148,7 @@ def generate_key_value_pairs(table, form):
             # Column name in tally sheet
             category = columns[col_index]
             cell_value = table_array[row_index][col_index]
-            if cell_value is not None and cell_value!="-" and cell_value!="":
+            if cell_value is not None and cell_value!="-" and cell_value!="" and cell_value!="None":
                 data_element_id = None
                 category_id = None
                 # Search for the string in the "label" field of form information
@@ -197,6 +172,34 @@ def generate_key_value_pairs(table, form):
                     )
 
     return data_element_pairs
+
+def correct_image_orientation(image_path):
+    """
+    Corrects the orientation of an image based on its EXIF data.
+
+    Usage:
+    corrected_image = correct_image_orientation("path/to/image.jpg")
+
+    :param image_path: The path to the image file.
+    :return: PIL.Image.Image: The image with corrected orientation.
+    """
+    with Image.open(image_path) as image:
+        image.load()
+    orientation = None
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = dict(image.getexif().items())
+        if exif.get(orientation) == 3:
+            image = image.rotate(180, expand=True)
+        elif exif.get(orientation) == 6:
+            image = image.rotate(270, expand=True)
+        elif exif.get(orientation) == 8:
+            image = image.rotate(90, expand=True)
+    except (AttributeError, KeyError, IndexError):
+        pass
+    return image
 
 # ocr_model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
 # document = DocumentFile.from_images("IMG_20240514_090947.jpg")
