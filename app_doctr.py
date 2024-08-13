@@ -408,6 +408,7 @@ if st.session_state['authenticated']:
                     page_nums_to_display.extend([str(i + 1)] * len(table_df))
                 table_dfs = post_processing.clean_up(table_dfs)
                 table_dfs = post_processing.evaluate_cells(table_dfs)
+                st.session_state['first_load'] = False
             else:
                 table_dfs = st.session_state['table_dfs'].copy()    
 

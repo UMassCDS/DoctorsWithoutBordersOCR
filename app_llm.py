@@ -475,7 +475,6 @@ if st.session_state['authenticated']:
             # This can normalize table headers to match DHIS2 using Levenstein distance or semantic search    
                 if data_set_selected_id:
                     edited_dfs = correct_field_names(table_dfs, form)
-                    print(edited_dfs)
                     save_st_table(edited_dfs)
                 else:
                     raise Exception("Select a valid dataset") 
