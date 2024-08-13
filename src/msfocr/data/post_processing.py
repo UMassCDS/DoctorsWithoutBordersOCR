@@ -60,3 +60,20 @@ def evaluate_cells(table_dfs):
                 continue
         table.update(table_removed_labels)
     return table_dfs
+
+def clean_up(table_dfs):
+    """Cleans up values in table that are returned as the string "None" by OCR model into empty string "" 
+
+    Args:
+        table_dfs (_List_): List of table data frames
+
+    Returns:
+        _List_: List of table data frames
+    """
+    for table in table_dfs:
+        for row in range(table.shape[0]):
+            for col in range(table.shape[1]):
+                cell_value = table.iloc[row][col]
+                if cell_value is None or cell_value=="None":
+                    table.iloc[row][col] = ""            
+    return table_dfs
