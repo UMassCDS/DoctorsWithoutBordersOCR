@@ -38,7 +38,7 @@ def test_get_tabular_content(datadir):
 
     doctr_ocr = DocTR(detect_language=False)
     img = Image(src=img_path)  # , detect_rotation=True
-    table_df, confidence_df = ocr_functions.get_tabular_content(doctr_ocr, img, confidence_lookup_dict)
+    table_df = ocr_functions.get_tabular_content(doctr_ocr, img)
 
     assert len(table_df) == 2
 
