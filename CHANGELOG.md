@@ -13,6 +13,8 @@ You should also add project tags for each release in Github, see [Managing relea
 - Table headers are corrected based on key-value pairs from DHIS2
 - Payload with key-value pairs for DHIS2 is displayed to the user before uploading
 - Images are resized before being sent to OpenAI 
+- Added all UI features such as DHIS2 authentication, multiple tally sheet processing, left bar on streamlit, buttons present in 
+LLM version of app into docTR version. 
 
 ### Changed
 - User must confirm each page and key-value pairs before they're allowed to upload, so upload buttons is not initially selectable
