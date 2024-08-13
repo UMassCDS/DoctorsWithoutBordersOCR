@@ -22,15 +22,10 @@ classifiers = [
 
 # All the dependencies needed for running your module go here
 dependencies = [
-    "img2table",
     "numpy",
-    "openai",
     "pandas",
-    "python-doctr",
     "python-Levenshtein",
-    "requests",
-    "torch",
-    "torchvision",
+    "requests"
 ]
 
 [project.optional-dependencies]
@@ -43,9 +38,19 @@ test = [
 
 # Dependencies only needed to run the streamlit app go here
 app = [
+    "openai",
     "streamlit",
     "simpleeval"
     ]
+
+app-doctr = [
+    "img2table",
+    "python-doctr",
+    "simpleeval",
+    "streamlit",
+    "torch",
+    "torchvision",
+]
 
 # Dependencies that are useful only to developers, like an autoformatter and support for visualizations in jupyter notebooks go here
 dev = [

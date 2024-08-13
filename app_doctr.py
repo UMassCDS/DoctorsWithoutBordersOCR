@@ -5,10 +5,10 @@ import os
 import requests
 import streamlit as st
 from requests.auth import HTTPBasicAuth
-from simpleeval import simple_eval
 
 from msfocr.data import dhis2
 from msfocr.doctr import ocr_functions as doctr_ocr_functions
+from msfocr.data import post_processing
 from img2table.document import Image
 from img2table.ocr import DocTR
 
@@ -203,7 +203,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[row,0]
             if text is not None:
                 for name in dataElement_list:
-                    sim = doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim = post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_dataElement < sim:
                         max_similarity_dataElement = sim
                         dataElement = name
@@ -216,7 +216,7 @@ def correct_field_names(dfs, form):
             text = table.iloc[0,id]
             if text is not None:
                 for name in categoryOptionsList:
-                    sim =  doctr_ocr_functions.letter_by_letter_similarity(text, name)
+                    sim =  post_processing.letter_by_letter_similarity(text, name)
                     if max_similarity_catOpt < sim:
                         max_similarity_catOpt = sim
                         catOpt = name
@@ -242,44 +242,6 @@ def save_st_table(table_dfs):
         if not table_dfs[idx].equals(st.session_state.table_dfs[idx]):
             st.session_state.table_dfs = table_dfs
             st.rerun()
-            
-            
-def evaluate_cells(table_dfs):
-    """Uses simple_eval to perform math operations on each cell, defaulting to input if failed.
-
-    Args:
-        table_dfs (_List_): List of table data frames
-
-    Returns:
-        _List_: List of table data frames
-    """
-    for table in table_dfs:
-        table_removed_labels = table.loc[1:, 1:]
-        for col in table_removed_labels.columns:
-            try:
-                # Contents should be strings in order to be editable later
-                table_removed_labels[col] = table_removed_labels[col].apply(lambda x: simple_eval(x) if x and x != "-" else x).astype("str")
-            except Exception:
-                continue
-        table.update(table_removed_labels)
-    return table_dfs
-
-def clean_up(table_dfs):
-    """Cleans up values in table that are returned as the string "None" by OCR model into empty string "" 
-
-    Args:
-        table_dfs (_List_): List of table data frames
-
-    Returns:
-        _List_: List of table data frames
-    """
-    for table in table_dfs:
-        for row in range(table.shape[0]):
-            for col in range(table.shape[1]):
-                cell_value = table.iloc[row][col]
-                if cell_value is None or cell_value=="None":
-                    table.iloc[row][col] = ""            
-    return table_dfs
 
 # Initializing session state variables that only need to be set on startup
 if "initialised" not in st.session_state:
@@ -444,8 +406,8 @@ if st.session_state['authenticated']:
                     table_df = get_tabular_content_wrapper(doctr_ocr, img)
                     table_dfs.extend(table_df)
                     page_nums_to_display.extend([str(i + 1)] * len(table_df))
-                table_dfs = clean_up(table_dfs)
-                table_dfs = evaluate_cells(table_dfs)
+                table_dfs = post_processing.clean_up(table_dfs)
+                table_dfs = post_processing.evaluate_cells(table_dfs)
             else:
                 table_dfs = st.session_state['table_dfs'].copy()    
 
@@ -475,6 +437,7 @@ if st.session_state['authenticated']:
         # Uploading the tables, adding columns for each name
         for i, (df, page_num) in enumerate(zip(st.session_state.table_dfs, st.session_state.page_nums)):
             if page_num != page_selected:
+                table_dfs[i] = df
                 continue
             int_page_num = int(page_num.replace(PAGE_REVIEWED_INDICATOR, "").strip())
             st.write(f"Table {i + 1}")
