@@ -8,7 +8,7 @@ You should also add project tags for each release in Github, see [Managing relea
 
 ## [Unreleased]
 
-[2.0.0] - 2024-08-13
+## [2.0.0] - 2024-08-13
 ### Added
 - Merged the MSF-OCR-Streamlit repository into this repository
 - User authenticates with DHIS2 password rather than hard coded passkey
