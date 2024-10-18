@@ -7,12 +7,14 @@
 - [Extras](#extras)
   - [Docker Instructions](#docker-instructions)
   - [Downloading Test Data from Azure](#downloading-test-data-from-azure)
+- [Acknowledgements](#acknowledgements)
 
 # Introduction
-Code repository for 2024 Data Science for the Common Good project with Doctors Without Borders.
+Code repository for 2024 Data Science for the Common Good project with Doctors Without Borders. 
 
 Doctors Without Borders collects data from their clinics and field locations using tally sheets. These tally sheets are standardized forms containing aggregate data, ensuring no individual can be identified and no protected health information (PHI) is included. Currently, this data is manually entered into their health system by over 100 employees, a time-consuming and tedious process. Our OCR pipeline is designed to automate this data entry process, improving efficiency and accuracy.
 
+A more detailed overview of the project is available in [our poster](docs/DoctorsWithoutBordersPoster.pdf) and [our demo video on YouTube](https://youtu.be/7CNdE1OjFKc?si=v4AYHxBNLFnatUjl).
 
 # Getting Started
 ## Installing Dependencies and Packages
@@ -116,6 +118,9 @@ list_blobs_in_container(storage_account_name, storage_account_key, container_nam
 download_blobs_in_container(storage_account_name, storage_account_key, container_name)
 ```
 
+# Acknowledgements
+We are deeply grateful to Doctors Without Borders for being generous with their time, expertise, data and feedback throughout the design, development and testing process. This project was possible thanks to financial support from the Center for Data Science and the Manning College of Information and Computer Sciences at the University of Massachusetts, Amherst. 
 
+Anju Santhosh Kumar, Robin Dziewietin and Yajie Li contributed to the design and development as part of the Data Science for the Common Good program. 
 
 
