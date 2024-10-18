@@ -7,6 +7,7 @@
 - [Extras](#extras)
   - [Docker Instructions](#docker-instructions)
   - [Downloading Test Data from Azure](#downloading-test-data-from-azure)
+- [Acknowledgements](#acknowledgements)
 
 # Introduction
 Code repository for 2024 Data Science for the Common Good project with Doctors Without Borders. 
